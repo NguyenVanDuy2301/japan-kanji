@@ -1,0 +1,302 @@
+[
+  {
+    "character": "日",
+    "onyomi": "ニチ, ジツ",
+    "kunyomi": "ひ, -び, -か",
+    "hanViet": "Nhật",
+    "meaning": "Mặt trời, ngày",
+    "strokeCount": 4,
+    "radical": "日",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "月",
+    "onyomi": "ゲツ, ガツ",
+    "kunyomi": "つき",
+    "hanViet": "Nguyệt",
+    "meaning": "Mặt trăng, tháng",
+    "strokeCount": 4,
+    "radical": "月",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "木",
+    "onyomi": "ボク, モク",
+    "kunyomi": "き, こ-",
+    "hanViet": "Mộc",
+    "meaning": "Cây, gỗ",
+    "strokeCount": 4,
+    "radical": "木",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "水",
+    "onyomi": "スイ",
+    "kunyomi": "みず",
+    "hanViet": "Thủy",
+    "meaning": "Nước",
+    "strokeCount": 4,
+    "radical": "水",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "火",
+    "onyomi": "カ",
+    "kunyomi": "ひ, -び, ほ-",
+    "hanViet": "Hỏa",
+    "meaning": "Lửa",
+    "strokeCount": 4,
+    "radical": "火",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "金",
+    "onyomi": "キン, コン, ゴン",
+    "kunyomi": "かね, かな-, -がね",
+    "hanViet": "Kim",
+    "meaning": "Vàng, tiền",
+    "strokeCount": 8,
+    "radical": "金",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "土",
+    "onyomi": "ド, ト",
+    "kunyomi": "つち",
+    "hanViet": "Thổ",
+    "meaning": "Đất",
+    "strokeCount": 3,
+    "radical": "土",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "勉",
+    "onyomi": "ベン",
+    "kunyomi": "つと.める",
+    "hanViet": "Miễn",
+    "meaning": "Cố gắng, miễn cưỡng",
+    "strokeCount": 10,
+    "radical": "力",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "強",
+    "onyomi": "キョウ, ゴウ",
+    "kunyomi": "つよ.い, つよ.まる, し.いる",
+    "hanViet": "Cường",
+    "meaning": "Mạnh, cường tráng",
+    "strokeCount": 11,
+    "radical": "弓",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "学",
+    "onyomi": "ガク",
+    "kunyomi": "まな.ぶ",
+    "hanViet": "Học",
+    "meaning": "Học, trường học",
+    "strokeCount": 8,
+    "radical": "子",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "一",
+    "onyomi": "イチ, イツ",
+    "kunyomi": "ひと, ひと-つ",
+    "hanViet": "Nhất",
+    "meaning": "Số một",
+    "strokeCount": 1,
+    "radical": "一",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "二",
+    "onyomi": "ニ, ジ",
+    "kunyomi": "ふた, ふた-つ",
+    "hanViet": "Nhị",
+    "meaning": "Số hai",
+    "strokeCount": 2,
+    "radical": "二",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "三",
+    "onyomi": "サン, ゾウ",
+    "kunyomi": "み, み-つ, みっ-つ",
+    "hanViet": "Tam",
+    "meaning": "Số ba",
+    "strokeCount": 3,
+    "radical": "一",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "四",
+    "onyomi": "シ",
+    "kunyomi": "よ, よ-つ, よっ-つ, よん",
+    "hanViet": "Tứ",
+    "meaning": "Số bốn",
+    "strokeCount": 5,
+    "radical": "囗",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "五",
+    "onyomi": "ゴ",
+    "kunyomi": "いつ, いつ-つ",
+    "hanViet": "Ngũ",
+    "meaning": "Số năm",
+    "strokeCount": 4,
+    "radical": "二",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "六",
+    "onyomi": "ロク, リク",
+    "kunyomi": "む, む-つ, むっ-つ, むい",
+    "hanViet": "Lục",
+    "meaning": "Số sáu",
+    "strokeCount": 4,
+    "radical": "八",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "七",
+    "onyomi": "シチ",
+    "kunyomi": "なな, なな-つ, なの",
+    "hanViet": "Thất",
+    "meaning": "Số bảy",
+    "strokeCount": 2,
+    "radical": "一",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "八",
+    "onyomi": "ハチ",
+    "kunyomi": "や, や-つ, やっ-つ, よう",
+    "hanViet": "Bát",
+    "meaning": "Số tám",
+    "strokeCount": 2,
+    "radical": "八",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "九",
+    "onyomi": "キュウ, ク",
+    "kunyomi": "ここの, ここの-つ",
+    "hanViet": "Cửu",
+    "meaning": "Số chín",
+    "strokeCount": 2,
+    "radical": "乙",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "十",
+    "onyomi": "ジュウ, ジッ, ジュッ",
+    "kunyomi": "とお, と",
+    "hanViet": "Thập",
+    "meaning": "Số mười",
+    "strokeCount": 2,
+    "radical": "十",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "百",
+    "onyomi": "ヒャク, ビャク",
+    "kunyomi": "もも",
+    "hanViet": "Bách",
+    "meaning": "Một trăm",
+    "strokeCount": 6,
+    "radical": "白",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "千",
+    "onyomi": "セン",
+    "kunyomi": "ち",
+    "hanViet": "Thiên",
+    "meaning": "Một nghìn",
+    "strokeCount": 3,
+    "radical": "十",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "万",
+    "onyomi": "マン, バン",
+    "kunyomi": "よろず",
+    "hanViet": "Vạn",
+    "meaning": "Mười nghìn",
+    "strokeCount": 3,
+    "radical": "一",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "円",
+    "onyomi": "エン",
+    "kunyomi": "まる-い, まる, まど, まど-か",
+    "hanViet": "Viên",
+    "meaning": "Tiền Yên, tròn",
+    "strokeCount": 4,
+    "radical": "冂",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "人",
+    "onyomi": "ジン, ニン",
+    "kunyomi": "ひと",
+    "hanViet": "Nhân",
+    "meaning": "Người",
+    "strokeCount": 2,
+    "radical": "人",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "今",
+    "onyomi": "コン, キン",
+    "kunyomi": "いま",
+    "hanViet": "Kim",
+    "meaning": "Bây giờ",
+    "strokeCount": 4,
+    "radical": "人",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "休",
+    "onyomi": "キュウ",
+    "kunyomi": "やす-む, やす-まる, やす-める",
+    "hanViet": "Hưu",
+    "meaning": "Nghỉ ngơi",
+    "strokeCount": 6,
+    "radical": "人",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "何",
+    "onyomi": "カ",
+    "kunyomi": "なに, なん",
+    "hanViet": "Hà",
+    "meaning": "Cái gì",
+    "strokeCount": 7,
+    "radical": "人",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "先",
+    "onyomi": "セン",
+    "kunyomi": "さき, ま-ず",
+    "hanViet": "Tiên",
+    "meaning": "Trước, tiên sinh",
+    "strokeCount": 6,
+    "radical": "儿",
+    "jlptLevel": "N5"
+  },
+  {
+    "character": "生",
+    "onyomi": "セイ, ショウ",
+    "kunyomi": "い-きる, い-かす, い-ける, う-まれる",
+    "hanViet": "Sinh",
+    "meaning": "Sống, sinh ra",
+    "strokeCount": 5,
+    "radical": "生",
+    "jlptLevel": "N5"
+  }
+]

@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@import "@astryxdesign/theme-neutral/theme.css";
+@import "@astryxdesign/core/astryx.css";
+
+@theme {
+  --color-primary: #ef4444; /* Sakura Red */
+  --color-primary-hover: #dc2626;
+}
+
+body {
+  font-family: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+}
