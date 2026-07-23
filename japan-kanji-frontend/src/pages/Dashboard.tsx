@@ -23,6 +23,8 @@ export default function Dashboard() {
   const [newDeckDescription, setNewDeckDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [editingDeck, setEditingDeck] = useState<DeckResponse | null>(null);
+  const [deckToDelete, setDeckToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -74,16 +76,23 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteDeck = async (deckId: number, e: React.MouseEvent) => {
+  const handleDeleteDeck = (deckId: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm("Bạn có chắc chắn muốn xoá bộ bài này? Tất cả dữ liệu học tập trong bộ bài sẽ bị mất.")) return;
-    
+    setDeckToDelete(deckId);
+  };
+
+  const confirmDeleteDeck = async () => {
+    if (deckToDelete === null) return;
+    setIsDeleting(true);
     try {
-      await deckService.deleteCustomDeck(deckId);
-      setCustomDecks(customDecks.filter(d => d.id !== deckId));
+      await deckService.deleteCustomDeck(deckToDelete);
+      setCustomDecks(customDecks.filter(d => d.id !== deckToDelete));
+      setDeckToDelete(null);
     } catch (error) {
       console.error("Failed to delete deck:", error);
       alert("Có lỗi xảy ra khi xoá bộ bài!");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -380,6 +389,40 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+      {/* Delete Confirmation Modal */}
+      {deckToDelete !== null && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-100 transition-opacity">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden transform scale-100 transition-transform">
+            <div className="p-6">
+              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+                <Trash2 size={24} />
+              </div>
+              <h2 className="text-xl font-bold text-neutral-900 mb-2">Xoá bộ bài này?</h2>
+              <p className="text-neutral-500 mb-6">
+                Bạn có chắc chắn muốn xoá bộ bài này không? Tất cả từ vựng và tiến độ học tập liên quan sẽ <strong>bị mất vĩnh viễn</strong> và không thể khôi phục.
+              </p>
+              <div className="flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => setDeckToDelete(null)}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-3 bg-neutral-100 text-neutral-700 font-semibold rounded-xl hover:bg-neutral-200 transition-colors disabled:opacity-50"
+                >
+                  Huỷ
+                </button>
+                <button 
+                  onClick={confirmDeleteDeck}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? "Đang xoá..." : "Xoá vĩnh viễn"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
