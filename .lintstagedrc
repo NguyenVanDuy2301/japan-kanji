@@ -1,0 +1,6 @@
+{
+  "japan-kanji-frontend/**/*.{ts,tsx,js,jsx}": [
+    "npm --prefix japan-kanji-frontend run lint",
+    "prettier --ignore-unknown --write"
+  ]
+}
