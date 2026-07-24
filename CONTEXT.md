@@ -5,8 +5,15 @@ Domain model and glossary for the Japan Kanji learning platform.
 ## Language
 
 **Vocabulary / Kanji**:
-A Japanese Kanji character (or vocabulary word) entry with its Onyomi, Kunyomi, Sino-Vietnamese translation, meaning, JLPT level, and examples.
+A Japanese Kanji character (or vocabulary word) entry with its Kanji, Onyomi, Kunyomi, Sino-Vietnamese translation, meaning, JLPT level, and stroke count.
 _Avoid_: Word, DictItem. (Note: Flashcard is used strictly in the context of studying a Deck).
+
+**Global Dictionary**:
+The central repository where all `Vocabulary` items reside globally as soon as they are added by Admin. They do not have a Draft state; they are immediately available for use and study.
+_Avoid_: Word List, Global Deck.
+
+**Bulk Import**:
+A mechanism for Admin to upload a CSV/Excel file to populate the Global Dictionary with thousands of Kanji items at once, rather than entering them singly.
 
 **Deck**:
 A collection of vocabulary items grouped together for studying (like a course or folder).

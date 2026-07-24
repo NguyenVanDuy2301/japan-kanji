@@ -99,7 +99,8 @@ public class StudyService {
                 vocabulary.getHanViet(),
                 vocabulary.getMeaning(),
                 vocabulary.getJlptLevel(),
-                vocabulary.getWordType()
+                vocabulary.getWordType(),
+                vocabulary.getStrokeCount()
         );
     }
 }

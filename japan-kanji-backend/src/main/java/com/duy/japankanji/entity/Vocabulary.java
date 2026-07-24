@@ -38,4 +38,7 @@ public class Vocabulary {
 
     @Column(name = "word_type")
     private String wordType; // Loại từ: danh từ, động từ, tính từ...
+
+    @Column(name = "stroke_count")
+    private Integer strokeCount; // Số nét
 }

@@ -29,5 +29,11 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
   - **Backend**: Tạo mới Entity `Kanji` độc lập với `Vocabulary`. Xây dựng tính năng tìm kiếm (Unified Search) theo chữ Hán, Romaji và Âm Hán Việt. Lấy danh sách ví dụ từ vựng động bằng `LIKE`. Viết thêm Seeder sinh tự động 10 chữ Kanji mẫu.
   - **Frontend**: Tạo trang `/kanji` riêng biệt. Xây dựng giao diện tìm kiếm dạng lưới (Grid) và hiển thị chi tiết (Modal) với đầy đủ thông tin: Bộ thủ, số nét, âm On, âm Kun và danh sách các từ vựng ví dụ có chứa chữ Hán đó. Tách component `Navbar` dùng chung.
 
+- **Quản trị Hán tự (Admin Kanji Manager)**:
+  - Bổ sung màn hình Quản lý Hán tự riêng dành cho Admin (truy cập qua Navbar khi đăng nhập tài khoản có role ADMIN).
+  - Tích hợp thêm thuộc tính `strokeCount` (số nét) vào toàn bộ quy trình tạo, sửa, xóa từ vựng (Frontend & Backend).
+  - Backend tự động đồng bộ (sync) các từ vựng 1 ký tự sang bảng `kanji` độc lập khi Admin thêm mới/sửa chữa.
+  - Sửa lỗi Spring Security chặn mã 500 (trả về 403) và khắc phục xung đột constructor giúp Kanji Dictionary hoạt động ổn định.
+
 ### Còn thiếu (Pending / Missing)
 - Gamification, Hệ thống huy hiệu (Badges), Bảng xếp hạng (Leaderboard) cho Giai đoạn 5.

@@ -8,5 +8,6 @@ public record VocabularyResponse(
         String hanViet,
         String meaning,
         String jlptLevel,
-        String wordType
+        String wordType,
+        Integer strokeCount
 ) {}

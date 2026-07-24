@@ -50,7 +50,7 @@ public class AuthService {
         User saved = userRepository.save(user);
 
         String token = jwtUtil.generateToken(saved.getUsername());
-        return new AuthResponse(token, saved.getUsername(), saved.getId());
+        return new AuthResponse(token, saved.getUsername(), saved.getId(), saved.getRole());
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -63,6 +63,6 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("Sai username hoặc password"));
 
         String token = jwtUtil.generateToken(user.getUsername());
-        return new AuthResponse(token, user.getUsername(), user.getId());
+        return new AuthResponse(token, user.getUsername(), user.getId(), user.getRole());
     }
 }

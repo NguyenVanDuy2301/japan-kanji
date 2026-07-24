@@ -3,7 +3,9 @@ package com.duy.japankanji.service;
 import com.duy.japankanji.dto.PageResponse;
 import com.duy.japankanji.dto.VocabularyRequest;
 import com.duy.japankanji.dto.VocabularyResponse;
+import com.duy.japankanji.entity.Kanji;
 import com.duy.japankanji.entity.Vocabulary;
+import com.duy.japankanji.repository.KanjiRepository;
 import com.duy.japankanji.repository.ReviewProgressRepository;
 import com.duy.japankanji.repository.VocabularyRepository;
 import org.springframework.data.domain.Page;
@@ -17,10 +19,12 @@ public class VocabularyService {
 
     private final VocabularyRepository vocabularyRepository;
     private final ReviewProgressRepository reviewProgressRepository;
+    private final KanjiRepository kanjiRepository;
 
-    public VocabularyService(VocabularyRepository vocabularyRepository, ReviewProgressRepository reviewProgressRepository) {
+    public VocabularyService(VocabularyRepository vocabularyRepository, ReviewProgressRepository reviewProgressRepository, KanjiRepository kanjiRepository) {
         this.vocabularyRepository = vocabularyRepository;
         this.reviewProgressRepository = reviewProgressRepository;
+        this.kanjiRepository = kanjiRepository;
     }
 
     public PageResponse<VocabularyResponse> getVocabularies(String keyword, int page, int size) {
@@ -50,13 +54,31 @@ public class VocabularyService {
     public VocabularyResponse createVocabulary(VocabularyRequest request) {
         Vocabulary vocabulary = new Vocabulary();
         updateEntityFromRequest(vocabulary, request);
-        return toResponse(vocabularyRepository.save(vocabulary));
+        Vocabulary saved = vocabularyRepository.save(vocabulary);
+        syncWithKanji(saved);
+        return toResponse(saved);
     }
 
     public VocabularyResponse updateVocabulary(Long id, VocabularyRequest request) {
         Vocabulary vocabulary = findById(id);
         updateEntityFromRequest(vocabulary, request);
-        return toResponse(vocabularyRepository.save(vocabulary));
+        Vocabulary saved = vocabularyRepository.save(vocabulary);
+        syncWithKanji(saved);
+        return toResponse(saved);
+    }
+
+    public java.util.List<VocabularyResponse> saveBulk(java.util.List<VocabularyRequest> requests) {
+        java.util.List<VocabularyResponse> saved = new java.util.ArrayList<>();
+        for (VocabularyRequest req : requests) {
+            if (!vocabularyRepository.existsByKanji(req.kanji())) {
+                Vocabulary vocabulary = new Vocabulary();
+                updateEntityFromRequest(vocabulary, req);
+                Vocabulary savedVocab = vocabularyRepository.save(vocabulary);
+                syncWithKanji(savedVocab);
+                saved.add(toResponse(savedVocab));
+            }
+        }
+        return saved;
     }
 
     public void deleteVocabulary(Long id) {
@@ -64,6 +86,13 @@ public class VocabularyService {
         if (reviewProgressRepository.existsByVocabularyId(id)) {
             throw new IllegalArgumentException("Không thể xóa từ vựng đã có người học");
         }
+        
+        // Also delete from Kanji table if it's a single character kanji
+        if (vocabulary.getKanji() != null && vocabulary.getKanji().length() == 1) {
+            kanjiRepository.findByCharacter(vocabulary.getKanji())
+                .ifPresent(kanjiRepository::delete);
+        }
+        
         vocabularyRepository.delete(vocabulary);
     }
 
@@ -80,6 +109,24 @@ public class VocabularyService {
         vocabulary.setMeaning(request.meaning());
         vocabulary.setJlptLevel(request.jlptLevel());
         vocabulary.setWordType(request.wordType());
+        vocabulary.setStrokeCount(request.strokeCount());
+    }
+
+    private void syncWithKanji(Vocabulary vocabulary) {
+        if (vocabulary.getKanji() != null && vocabulary.getKanji().length() == 1) {
+            Kanji kanji = kanjiRepository.findByCharacter(vocabulary.getKanji()).orElse(new Kanji());
+            kanji.setCharacter(vocabulary.getKanji());
+            kanji.setOnyomi(vocabulary.getOnyomi());
+            kanji.setKunyomi(vocabulary.getKunyomi());
+            kanji.setHanViet(vocabulary.getHanViet());
+            kanji.setMeaning(vocabulary.getMeaning());
+            kanji.setStrokeCount(vocabulary.getStrokeCount());
+            kanji.setJlptLevel(vocabulary.getJlptLevel());
+            if (kanji.getRadical() == null) {
+                kanji.setRadical("-");
+            }
+            kanjiRepository.save(kanji);
+        }
     }
 
     private VocabularyResponse toResponse(Vocabulary vocabulary) {
@@ -91,7 +138,8 @@ public class VocabularyService {
                 vocabulary.getHanViet(),
                 vocabulary.getMeaning(),
                 vocabulary.getJlptLevel(),
-                vocabulary.getWordType()
+                vocabulary.getWordType(),
+                vocabulary.getStrokeCount()
         );
     }
 }

@@ -38,6 +38,12 @@ public class VocabularyController {
         return vocabularyService.createVocabulary(request);
     }
 
+    @PostMapping("/bulk")
+    @ResponseStatus(HttpStatus.CREATED)
+    public java.util.List<VocabularyResponse> createBulkVocabularies(@RequestBody java.util.List<@Valid VocabularyRequest> requests) {
+        return vocabularyService.saveBulk(requests);
+    }
+
     @PutMapping("/{id}")
     public VocabularyResponse updateVocabulary(
             @PathVariable Long id,

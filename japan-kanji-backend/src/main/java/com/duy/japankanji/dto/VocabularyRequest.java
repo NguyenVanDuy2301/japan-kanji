@@ -19,5 +19,7 @@ public record VocabularyRequest(
         @Pattern(regexp = "^N[1-5]$", message = "JLPT Level phải là N1, N2, N3, N4, hoặc N5")
         String jlptLevel,
 
-        String wordType
+        String wordType,
+        
+        Integer strokeCount
 ) {}

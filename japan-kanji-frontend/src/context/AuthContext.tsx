@@ -5,12 +5,14 @@ import type { ReactNode } from 'react';
 interface UserProfile {
   username: string;
   userId: number;
+  role: string;
 }
 
 interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
-  login: (token: string, username: string, userId: number) => void;
+  isAdmin: boolean;
+  login: (token: string, username: string, userId: number, role: string) => void;
   logout: () => void;
 }
 
@@ -21,23 +23,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
     const userId = localStorage.getItem('userId');
+    const role = localStorage.getItem('role') || 'USER'; // Default to USER if missing
     if (token && username && userId) {
-      return { username, userId: parseInt(userId, 10) };
+      return { username, userId: parseInt(userId, 10), role };
     }
     return null;
   });
 
-  const login = (token: string, username: string, userId: number) => {
+  const login = (token: string, username: string, userId: number, role: string) => {
     localStorage.setItem('token', token);
     localStorage.setItem('username', username);
     localStorage.setItem('userId', userId.toString());
-    setUser({ username, userId });
+    localStorage.setItem('role', role);
+    setUser({ username, userId, role });
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     localStorage.removeItem('userId');
+    localStorage.removeItem('role');
     setUser(null);
   };
 
@@ -46,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isAuthenticated: !!user,
+        isAdmin: user?.role === 'ADMIN',
         login,
         logout,
       }}

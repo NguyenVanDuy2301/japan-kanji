@@ -83,7 +83,7 @@ public class DataSeeder implements CommandLineRunner {
                 ObjectMapper objectMapper = new ObjectMapper();
                 List<Kanji> kanjis = objectMapper.readValue(is, new TypeReference<List<Kanji>>() {});
                 vocabularies = kanjis.stream().map(k -> new Vocabulary(
-                        null, k.getCharacter(), k.getOnyomi(), k.getKunyomi(), k.getHanViet(), k.getMeaning(), k.getJlptLevel(), "noun"
+                        null, k.getCharacter(), k.getOnyomi(), k.getKunyomi(), k.getHanViet(), k.getMeaning(), k.getJlptLevel(), "noun", k.getStrokeCount()
                 )).collect(Collectors.toList());
             } else {
                 throw new RuntimeException("Could not find kanji-seed.json");

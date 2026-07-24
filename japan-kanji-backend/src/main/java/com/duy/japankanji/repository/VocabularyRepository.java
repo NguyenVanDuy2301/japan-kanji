@@ -22,4 +22,6 @@ public interface VocabularyRepository extends JpaRepository<Vocabulary, Long> {
 
     @Query("SELECT COUNT(DISTINCT v.id) FROM Deck d JOIN d.vocabularies v WHERE d.author.id = :userId OR d IN (SELECT sd FROM User u JOIN u.savedDecks sd WHERE u.id = :userId)")
     long countTotalVocabulariesForUser(@Param("userId") Long userId);
+
+    boolean existsByKanji(String kanji);
 }

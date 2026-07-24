@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.HttpMethod;
+import jakarta.servlet.DispatcherType;
 
 @Configuration
 public class SecurityConfig {
@@ -51,6 +52,7 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // không dùng session, JWT thay thế
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/auth/**").permitAll() // đăng ký/đăng nhập luôn mở
                         .requestMatchers(HttpMethod.GET, "/api/vocabularies/**").authenticated() // Mọi user đăng nhập đều xem được
                         .requestMatchers("/api/vocabularies/**").hasRole("ADMIN") // Thêm, sửa, xoá yêu cầu ADMIN

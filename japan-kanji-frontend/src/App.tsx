@@ -8,6 +8,7 @@ import LessonSession from "./pages/LessonSession";
 import ReviewSession from "./pages/ReviewSession";
 import DeckManager from "./pages/DeckManager";
 import KanjiDictionary from "./pages/KanjiDictionary";
+import AdminKanjiManager from "./pages/AdminKanjiManager";
 
 // A simple protected route component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -61,6 +62,14 @@ function App() {
           element={
             <ProtectedRoute>
               <DeckManager />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/kanji" 
+          element={
+            <ProtectedRoute>
+              <AdminKanjiManager />
             </ProtectedRoute>
           } 
         />

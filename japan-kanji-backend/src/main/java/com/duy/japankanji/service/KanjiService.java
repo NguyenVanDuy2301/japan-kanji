@@ -82,7 +82,8 @@ public class KanjiService {
                 vocab.getHanViet(),
                 vocab.getMeaning(),
                 vocab.getJlptLevel(),
-                vocab.getWordType()
+                vocab.getWordType(),
+                vocab.getStrokeCount()
         );
     }
 }

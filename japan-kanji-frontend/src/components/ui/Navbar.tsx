@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
 
   return (
     <header className="bg-white border-b border-neutral-200 sticky top-0 z-30">
@@ -18,11 +18,21 @@ export default function Navbar() {
           
           <Link 
             to="/kanji" 
-            className="hidden sm:flex items-center gap-1.5 text-neutral-600 hover:text-red-600 font-medium transition-colors"
+            className="hidden sm:flex items-center gap-1.5 text-neutral-600 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg font-medium transition-colors"
           >
             <Search size={18} />
             <span>Từ điển Kanji</span>
           </Link>
+
+          {isAdmin && (
+            <Link 
+              to="/admin/kanji" 
+              className="hidden sm:flex items-center gap-1.5 text-neutral-600 hover:text-purple-600 hover:bg-purple-50 px-3 py-1.5 rounded-lg font-medium transition-colors"
+            >
+              <BookOpen size={18} />
+              <span>Quản lý Hán tự</span>
+            </Link>
+          )}
         </div>
         
         <div className="flex items-center gap-4">

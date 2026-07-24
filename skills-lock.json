@@ -85,6 +85,12 @@
       "skillPath": "skills/productivity/handoff/SKILL.md",
       "computedHash": "7b03a812d5ca10fa8fe69d4cf8a34542684db51f5db0271254b96074e9f3a243"
     },
+    "html-diagram": {
+      "source": "plannotator/effective-html",
+      "sourceType": "github",
+      "skillPath": "skills/html-diagram/SKILL.md",
+      "computedHash": "261b76826209f5e46882dd9c1c53fc1a2deb8ec9be736a2c96299706d2f89877"
+    },
     "implement": {
       "source": "mattpocock/skills",
       "sourceType": "github",

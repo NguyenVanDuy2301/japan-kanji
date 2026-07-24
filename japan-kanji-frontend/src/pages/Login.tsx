@@ -26,7 +26,7 @@ export default function Login() {
 
     try {
       const response = await authService.login({ username, password });
-      login(response.token, response.username, response.userId);
+      login(response.token, response.username, response.userId, response.role);
       navigate("/"); // Redirect to home/dashboard
     } catch (err: any) {
       // Show persistent error

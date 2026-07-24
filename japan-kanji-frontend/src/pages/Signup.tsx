@@ -39,7 +39,7 @@ export default function Signup() {
 
     try {
       const response = await authService.register({ username, email, password });
-      login(response.token, response.username, response.userId);
+      login(response.token, response.username, response.userId, response.role);
       navigate("/"); // Redirect to home/dashboard
     } catch (err: any) {
       // Show persistent error
