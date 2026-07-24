@@ -16,7 +16,7 @@ export const studyService = {
     return response.data;
   },
 
-  submitReview: async (vocabularyId: number, isCorrect: boolean): Promise<void> => {
-    await api.post(`/api/study/submit-review?vocabularyId=${vocabularyId}&isCorrect=${isCorrect}`);
+  submitReview: async (vocabularyId: number, quality: number): Promise<void> => {
+    await api.post(`/api/study/submit-review?vocabularyId=${vocabularyId}&quality=${quality}`);
   }
 };

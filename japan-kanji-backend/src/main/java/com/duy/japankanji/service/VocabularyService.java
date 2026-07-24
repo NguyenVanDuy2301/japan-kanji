@@ -68,17 +68,23 @@ public class VocabularyService {
     }
 
     public java.util.List<VocabularyResponse> saveBulk(java.util.List<VocabularyRequest> requests) {
-        java.util.List<VocabularyResponse> saved = new java.util.ArrayList<>();
+        java.util.List<String> kanjis = requests.stream().map(VocabularyRequest::kanji).toList();
+        java.util.Set<String> existingKanjis = new java.util.HashSet<>(vocabularyRepository.findKanjisIn(kanjis));
+        
+        java.util.List<Vocabulary> toSave = new java.util.ArrayList<>();
         for (VocabularyRequest req : requests) {
-            if (!vocabularyRepository.existsByKanji(req.kanji())) {
+            if (!existingKanjis.contains(req.kanji())) {
                 Vocabulary vocabulary = new Vocabulary();
                 updateEntityFromRequest(vocabulary, req);
-                Vocabulary savedVocab = vocabularyRepository.save(vocabulary);
-                syncWithKanji(savedVocab);
-                saved.add(toResponse(savedVocab));
+                toSave.add(vocabulary);
+                existingKanjis.add(req.kanji()); // Avoid duplicates in the request itself
             }
         }
-        return saved;
+        
+        java.util.List<Vocabulary> savedVocabs = vocabularyRepository.saveAll(toSave);
+        savedVocabs.forEach(this::syncWithKanji);
+        
+        return savedVocabs.stream().map(this::toResponse).toList();
     }
 
     public void deleteVocabulary(Long id) {

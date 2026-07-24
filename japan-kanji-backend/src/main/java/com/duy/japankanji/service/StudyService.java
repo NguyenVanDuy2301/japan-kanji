@@ -23,10 +23,12 @@ public class StudyService {
     private final ReviewProgressRepository reviewProgressRepository;
     private final UserRepository userRepository;
     private final VocabularyRepository vocabularyRepository;
+    private final Sm2Service sm2Service;
 
     public List<VocabularyResponse> getLessons(Long deckId, String username, int limit) {
         User user = userRepository.findByUsername(username).orElseThrow();
-        List<Vocabulary> unstudied = reviewProgressRepository.findUnstudiedVocabulariesInDeck(deckId, user.getId(), PageRequest.of(0, limit));
+        List<Vocabulary> unstudied = reviewProgressRepository.findUnstudiedVocabulariesInDeck(deckId, user.getId(),
+                PageRequest.of(0, limit));
         return unstudied.stream().map(this::toResponse).toList();
     }
 
@@ -50,13 +52,14 @@ public class StudyService {
         long mastered = reviewProgressRepository.countMasteredByUserId(userId);
         long learning = reviewProgressRepository.countLearningByUserId(userId);
         long unseen = totalVocab - mastered - learning;
-        if (unseen < 0) unseen = 0;
+        if (unseen < 0)
+            unseen = 0;
 
         return new StudyStatisticsResponse(mastered, learning, unseen);
     }
 
     @Transactional
-    public void submitReview(String username, Long vocabularyId, boolean isCorrect) {
+    public void submitReview(String username, Long vocabularyId, int quality) {
         User user = userRepository.findByUsername(username).orElseThrow();
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow();
 
@@ -71,22 +74,8 @@ public class StudyService {
                     return rp;
                 });
 
-        if (isCorrect) {
-            if (progress.getRepetitions() == 0) {
-                progress.setIntervalDays(1);
-            } else if (progress.getRepetitions() == 1) {
-                progress.setIntervalDays(6);
-            } else {
-                progress.setIntervalDays((int) Math.round(progress.getIntervalDays() * progress.getEaseFactor()));
-            }
-            progress.setRepetitions(progress.getRepetitions() + 1);
-        } else {
-            progress.setRepetitions(0);
-            progress.setIntervalDays(1);
-            progress.setEaseFactor(Math.max(1.3, progress.getEaseFactor() - 0.2));
-        }
+        sm2Service.updateProgress(progress, quality);
 
-        progress.setNextReviewDate(LocalDate.now().plusDays(progress.getIntervalDays()));
         reviewProgressRepository.save(progress);
     }
 
@@ -100,7 +89,12 @@ public class StudyService {
                 vocabulary.getMeaning(),
                 vocabulary.getJlptLevel(),
                 vocabulary.getWordType(),
-                vocabulary.getStrokeCount()
-        );
+                vocabulary.getStrokeCount());
+    }
+
+    @Transactional
+    public void forceDueReviews(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow();
+        reviewProgressRepository.forceDueReviewsForUser(user.getId(), LocalDate.now().minusDays(1));
     }
 }

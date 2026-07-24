@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Folder, Plus, ChevronRight, Settings, Share2, X, Edit, Trash2 } from "lucide-react";
+import { Folder, Plus, Settings, Share2, X, Edit, Trash2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { deckService, type DeckResponse } from "../services/deck.service";
 import { studyService } from "../services/study.service";
@@ -208,7 +208,16 @@ export default function Dashboard() {
                     <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">Thống kê tiến độ</h2>
                     <p className="text-neutral-500 mt-1">Theo dõi lượng Kanji bạn đang học và đã ghi nhớ sâu.</p>
                   </div>
-                  <div className="flex gap-6 text-sm font-medium">
+                  <div className="flex gap-6 text-sm font-medium items-center">
+                    <button 
+                      onClick={async () => {
+                        await fetch('/api/study/force-due', { headers: { Authorization: "Bearer " + localStorage.getItem('token') }});
+                        window.location.reload();
+                      }}
+                      className="px-3 py-1 bg-red-100 text-red-600 rounded-md hover:bg-red-200 text-xs font-bold"
+                    >
+                      🛠 Cheat: Bắt ôn tập ngay
+                    </button>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-green-500"></div>
                       <span className="text-neutral-700">Thuộc lòng: {statistics.masteredCount}</span>

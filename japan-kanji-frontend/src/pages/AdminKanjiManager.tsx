@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Upload, Plus, Search, Edit2, Trash2, X, CheckCircle } from "lucide-react";
+import { Upload, Plus, Search, Edit2, Trash2, X } from "lucide-react";
 import Navbar from "../components/ui/Navbar";
 import api from "../services/api";
 import Papa from "papaparse";

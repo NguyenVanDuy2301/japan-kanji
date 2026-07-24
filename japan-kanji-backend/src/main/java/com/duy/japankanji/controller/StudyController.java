@@ -46,9 +46,15 @@ public class StudyController {
     @PostMapping("/submit-review")
     public ResponseEntity<Void> submitReview(
             @RequestParam Long vocabularyId,
-            @RequestParam boolean isCorrect,
+            @RequestParam int quality,
             Authentication authentication) {
-        studyService.submitReview(authentication.getName(), vocabularyId, isCorrect);
+        studyService.submitReview(authentication.getName(), vocabularyId, quality);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/force-due")
+    public ResponseEntity<Void> forceDueReviews(Authentication authentication) {
+        studyService.forceDueReviews(authentication.getName());
         return ResponseEntity.ok().build();
     }
 }

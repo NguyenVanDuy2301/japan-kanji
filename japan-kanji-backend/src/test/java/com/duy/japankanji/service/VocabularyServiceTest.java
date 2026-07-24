@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,6 +26,9 @@ class VocabularyServiceTest {
 
     @Mock
     private ReviewProgressRepository reviewProgressRepository;
+
+    @Mock
+    private com.duy.japankanji.repository.KanjiRepository kanjiRepository;
 
     @InjectMocks
     private VocabularyService vocabularyService;
@@ -43,18 +45,18 @@ class VocabularyServiceTest {
         List<VocabularyRequest> bulkRequests = List.of(req1, req2);
 
         // Giả lập: "学" đã tồn tại trong DB, "校" chưa tồn tại
-        when(vocabularyRepository.existsByKanji("学")).thenReturn(true);
-        when(vocabularyRepository.existsByKanji("校")).thenReturn(false);
+        when(vocabularyRepository.findKanjisIn(anyList())).thenReturn(List.of("学"));
 
         Vocabulary savedKou = new Vocabulary(2L, "校", "コウ", "-", "HIỆU", "Trường học", "N5", "noun", 10);
-        when(vocabularyRepository.save(any(Vocabulary.class))).thenReturn(savedKou);
+        when(vocabularyRepository.saveAll(anyList())).thenReturn(List.of(savedKou));
+        when(kanjiRepository.findByCharacter(anyString())).thenReturn(java.util.Optional.empty());
 
         // Act
         List<VocabularyResponse> result = vocabularyService.saveBulk(bulkRequests);
 
         // Assert
         // Chỉ lưu 1 từ (chữ 校), chữ 学 bị bỏ qua
-        verify(vocabularyRepository, times(1)).save(any(Vocabulary.class));
+        verify(vocabularyRepository, times(1)).saveAll(anyList());
         assertThat(result).hasSize(1);
         assertThat(result.get(0).kanji()).isEqualTo("校");
     }

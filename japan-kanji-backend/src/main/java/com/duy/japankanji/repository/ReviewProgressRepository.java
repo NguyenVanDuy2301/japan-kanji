@@ -23,6 +23,10 @@ public interface ReviewProgressRepository extends JpaRepository<ReviewProgress, 
     @Query("SELECT r FROM ReviewProgress r WHERE r.user.id = :userId AND r.nextReviewDate <= :date ORDER BY r.nextReviewDate ASC")
     List<ReviewProgress> findDueReviews(@Param("userId") Long userId, @Param("date") java.time.LocalDate date);
 
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE ReviewProgress r SET r.nextReviewDate = :date WHERE r.user.id = :userId")
+    void forceDueReviewsForUser(@Param("userId") Long userId, @Param("date") LocalDate date);
+
     @Query("SELECT v FROM Deck d JOIN d.vocabularies v WHERE d.id = :deckId AND NOT EXISTS (SELECT r FROM ReviewProgress r WHERE r.user.id = :userId AND r.vocabulary.id = v.id)")
     List<Vocabulary> findUnstudiedVocabulariesInDeck(@Param("deckId") Long deckId, @Param("userId") Long userId, org.springframework.data.domain.Pageable pageable);
 

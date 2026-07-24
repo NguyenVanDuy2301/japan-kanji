@@ -24,6 +24,14 @@ export default function Navbar() {
             <span>Từ điển Kanji</span>
           </Link>
 
+          <Link 
+            to="/study/review" 
+            className="hidden sm:flex items-center gap-1.5 text-neutral-600 hover:text-green-600 hover:bg-green-50 px-3 py-1.5 rounded-lg font-medium transition-colors"
+          >
+            <BookOpen size={18} />
+            <span>Ôn Tập</span>
+          </Link>
+
           {isAdmin && (
             <Link 
               to="/admin/kanji" 

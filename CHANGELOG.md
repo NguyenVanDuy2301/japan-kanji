@@ -8,7 +8,7 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
 - **Tạo dữ liệu mẫu (Data Seeding)**: Hoàn thiện `DataSeeder.java`, tự động tạo bộ bài "JLPT N5 Core" cùng các từ vựng N5 cơ bản (Onyomi, Kunyomi, Hán Việt, Nghĩa) và các tài khoản mẫu (admin, user).
 - **Backend API Học & Ôn tập**: Cấu hình thuật toán Spaced Repetition (SM-2) trong `StudyService.java`. Xây dựng các API trả về từ mới (`/lessons`), từ ôn tập (`/reviews`), chế độ luyện tập (`/practice`), và chấm điểm (`/submit-review`).
 - **Giao diện Học từ mới (Lesson Session)**: Xây dựng màn hình lật thẻ (Flip Card) 3D mượt mà. Đơn giản hóa UX bằng cách gộp thành một nút "Vào Học" duy nhất trên trang chủ: Hệ thống sẽ tự động bắt đầu bài học mới nếu có từ chưa thuộc, hoặc tự động chuyển sang "Chế độ Luyện Tập" nếu người dùng đã học hết từ mới, giúp trải nghiệm liền mạch không bị gián đoạn.
-- **Giao diện Ôn tập (Review Session)**: Hoàn thành màn hình bài kiểm tra gõ phím. Chấm điểm ngay lập tức (Xanh lá nếu Đúng, Đỏ rung lắc nếu Sai) đối với Nghĩa, Romaji, Âm On, Âm Kun, Âm Hán Việt.
+- **Giao diện Ôn tập (Review Session)**: Hoàn thiện chế độ **Hybrid (Flashcard + Gõ phím)** kết hợp thuật toán SM-2. Hỗ trợ luật "Quá tam ba bận" (sai 3 lần tự lật đáp án) kèm hiệu ứng rung lắc (shake) và tự động focus. Tích hợp điểm chất lượng (Quality 0-5) truyền thẳng xuống Backend để tính toán lịch ôn tập.
 - **Việt hóa (Localization)**: Dịch 100% tiếng Anh sang tiếng Việt tại các trang Login, Signup, Dashboard, LessonSession, ReviewSession.
 - **Khu vực Ôn tập trên Dashboard**: Thêm banner báo số lượng từ "Đã đến hạn ôn tập hôm nay" ngay trên cùng trang chủ, kèm nút "Bắt Đầu Ôn Tập" để vào thẳng tính năng Review.
 - **Tạo và Quản lý Bộ bài Cá nhân (Phase 3)**:

@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Japan-Kanji — Architecture</title>
+<script>
+  (function () {
+    const saved = localStorage.getItem('theme');
+    const dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.classList.toggle('dark', dark);
+  })();
+</script>
+<style>
+  :root {
+    --bg: #FAF9F5; --surface: #FFFFFF; --surface2: #F0EEE6;
+    --ink: #141413; --body: #3D3D3A; --muted: #87867F;
+    --line: #D1CFC5; --line-soft: #E6E3DA;
+    --clay: #D97757; --clay-soft: rgba(217,119,87,0.10);
+    --olive: #788C5D; --olive-soft: rgba(120,140,93,0.12);
+    --gold: #C9A45C; --blue: #5B7E96;
+    --zone: rgba(20,20,19,0.025); --zone-line: #D1CFC5;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  html.dark {
+    --bg: #141413; --surface: #1F1F1D; --surface2: #2A2A28;
+    --ink: #FAF9F5; --body: #D1CFC5; --muted: #87867F;
+    --line: #3D3D3A; --line-soft: #2A2A28;
+    --clay: #E48A6E; --clay-soft: rgba(228,138,110,0.14);
+    --olive: #9DB07C; --olive-soft: rgba(157,176,124,0.16);
+    --gold: #D4B36F; --blue: #7FA3BC;
+    --zone: rgba(250,249,245,0.03); --zone-line: #3D3D3A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--body); font-family: var(--sans);
+    -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  .bar {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 12px 20px; border-bottom: 1px solid var(--line-soft); flex: none; z-index: 10;
+    background: var(--bg);
+  }
+  .bar h1 { font-family: var(--serif); font-weight: 500; font-size: 19px; color: var(--ink); letter-spacing: -0.01em; }
+  .bar .sub { font-family: var(--mono); font-size: 10.5px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  .spacer { flex: 1; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
+    padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px;
+    background: transparent; color: var(--muted); cursor: pointer; transition: all .15s ease;
+  }
+  .chip:hover { color: var(--ink); border-color: var(--muted); }
+  .chip.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  #themeToggle, #resetZoom {
+    font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px;
+    background: transparent; color: var(--muted); cursor: pointer;
+  }
+  #themeToggle:hover, #resetZoom:hover { color: var(--ink); border-color: var(--muted); }
+
+  .stage { flex: 1; position: relative; min-height: 0; cursor: grab; }
+  .stage:active { cursor: grabbing; }
+  .stage svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* SVG elements */
+  .zone rect { fill: var(--zone); stroke: var(--zone-line); stroke-width: 1; stroke-dasharray: 5 5; rx: 16; }
+  .zone .ztitle { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; fill: var(--muted); pointer-events: none; }
+  .zone .zsub { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); opacity: 0.75; pointer-events: none; }
+
+  .node { cursor: pointer; }
+  .node rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; rx: 10; transition: stroke .15s ease, filter .15s ease; }
+  .node:hover rect { stroke: var(--muted); }
+  .node.sel rect { stroke: var(--clay) !important; stroke-width: 2; }
+  .node .t  { font-family: var(--sans); font-size: 14.5px; font-weight: 600; fill: var(--ink); pointer-events: none; }
+  .node .m  { font-family: var(--mono); font-size: 11px; fill: var(--muted); pointer-events: none; }
+  .node .k  { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--clay); pointer-events: none; }
+  
+  .node.auth rect { fill: var(--clay-soft); stroke: var(--clay); }
+  .node.ent rect { fill: var(--surface2); stroke: var(--olive); }
+  .node.biz rect { fill: var(--olive-soft); stroke: var(--olive); }
+  .node.err rect { stroke-dasharray: 6 3; stroke: var(--clay); }
+
+  .edge { stroke: var(--muted); stroke-width: 1.6; fill: none; marker-end: url(#a-mut); transition: opacity .2s ease, stroke .2s ease; }
+  .edge.dash { stroke-dasharray: 5 4; }
+  .elbl { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); transition: opacity .2s ease; }
+
+  .stage.flowing .edge { opacity: 0.13; }
+  .stage.flowing .elbl { opacity: 0.13; }
+  .stage.flowing .node { opacity: 0.30; }
+  .stage.flowing .zone { opacity: 0.45; }
+  .stage.flowing .edge.lit {
+    opacity: 1; stroke: var(--clay); marker-end: url(#a-clay);
+    stroke-dasharray: 7 5; animation: march 0.9s linear infinite;
+  }
+  .stage.flowing .elbl.lit { opacity: 1; fill: var(--clay); }
+  .stage.flowing .node.lit { opacity: 1; }
+  .stage.flowing .node.lit rect { stroke: var(--clay); }
+  @keyframes march { to { stroke-dashoffset: -12; } }
+  @media (prefers-reduced-motion: reduce) { .stage.flowing .edge.lit { animation: none; } }
+
+  .card {
+    position: absolute; max-width: 360px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+    display: none; z-index: 20;
+  }
+  .card.show { display: block; }
+  .card .close-btn { position: absolute; top: 12px; right: 12px; cursor: pointer; color: var(--muted); font-size: 16px; font-weight: bold; line-height: 1; }
+  .card .close-btn:hover { color: var(--ink); }
+
+  #detail { right: 16px; bottom: 16px; width: 340px; }
+  #detail h3 { font-family: var(--serif); font-weight: 500; font-size: 17px; color: var(--ink); margin-bottom: 2px; padding-right: 15px; }
+  #detail .meta { font-family: var(--mono); font-size: 10.5px; color: var(--muted); margin-bottom: 8px; }
+  #detail p { font-size: 12.5px; line-height: 1.55; }
+  #detail p code { font-family: var(--mono); font-size: 11px; color: var(--clay); }
+  
+  #flowcap { left: 16px; bottom: 16px; max-width: 460px; }
+  #flowcap .fname { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--clay); margin-bottom: 6px; padding-right: 15px;}
+  #flowcap ol { margin-left: 18px; font-size: 12.5px; line-height: 1.55; color: var(--body); }
+  #flowcap code { font-family: var(--mono); font-size: 11px; color: var(--clay); }
+
+  #zoom-level { position: absolute; bottom: 16px; right: 380px; font-family: var(--mono); font-size: 11px; color: var(--muted); pointer-events: none; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div>
+    <h1>Japan-Kanji Architecture</h1>
+    <div class="sub">3-tier Spring Boot · JWT Auth · Global Error Handling</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="chips" id="chips">
+    <button class="chip on" data-flow="all">All</button>
+    <button class="chip" data-flow="auth">Auth Flow</button>
+    <button class="chip" data-flow="data">Data Flow</button>
+    <button class="chip" data-flow="error">Error Handling</button>
+  </div>
+  <button id="resetZoom">Reset Zoom</button>
+  <button id="themeToggle">Theme</button>
+</div>
+
+<div class="stage" id="stage">
+<svg id="mainsvg" viewBox="0 0 1560 980" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Japan-Kanji architecture diagram">
+  <defs>
+    <marker id="a-mut" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--muted)"/>
+    </marker>
+    <marker id="a-clay" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill: var(--clay)"/>
+    </marker>
+  </defs>
+  
+  <g id="svg-content">
+    <!-- Zones -->
+    <g class="zone">
+      <rect x="40" y="80" width="220" height="200"/>
+      <text class="ztitle" x="60" y="110">Client</text>
+    </g>
+    <g class="zone">
+      <rect x="300" y="80" width="240" height="300"/>
+      <text class="ztitle" x="320" y="110">Security Layer</text>
+    </g>
+    <g class="zone">
+      <rect x="580" y="80" width="820" height="740"/>
+      <text class="ztitle" x="600" y="110">Application Layer (3-Tier)</text>
+    </g>
+
+    <!-- Edges -->
+    <path class="edge" id="e-c2f" d="M225,180 L325,180"/>
+    <path class="edge" id="e-f2s" d="M405,235 L405,270"/>
+    <path class="edge" id="e-f2c" d="M485,180 L625,180"/>
+    <path class="edge" id="e-c2s" d="M785,180 L885,180"/>
+    <path class="edge" id="e-s2r" d="M1045,180 L1155,180"/>
+    
+    <!-- Data to Entities -->
+    <path class="edge dash" id="e-r2u" d="M1255,235 C 1255,350 965,350 965,480"/>
+    <path class="edge dash" id="e-r2v" d="M1255,235 C 1255,350 1215,350 1215,480"/>
+    
+    <!-- Relations -->
+    <path class="edge" id="e-u2rp" d="M965,555 L965,655"/>
+    <path class="edge" id="e-v2rp" d="M1215,555 C 1215,620 965,620 965,655"/>
+    
+    <!-- Sync -->
+    <path class="edge dash" id="e-v2k" d="M1305,515 L1405,515"/>
+
+    <!-- Errors -->
+    <path class="edge dash" id="e-errc" d="M705,235 L705,360"/>
+    <path class="edge dash" id="e-errs" d="M965,235 C 965,320 750,320 750,360"/>
+    <path class="edge dash" id="e-errr" d="M1255,235 C 1255,420 830,420 830,392 L805,392"/>
+
+    <!-- Edge Labels -->
+    <text class="elbl" data-e="e-c2f" x="275" y="170" text-anchor="middle">HTTP + JWT</text>
+    <text class="elbl" data-e="e-f2c" x="555" y="170" text-anchor="middle">Pass Filter</text>
+    <text class="elbl" data-e="e-c2s" x="835" y="170" text-anchor="middle">Call Logic</text>
+    <text class="elbl" data-e="e-s2r" x="1100" y="170" text-anchor="middle">JPA Query</text>
+    <text class="elbl" data-e="e-v2k" x="1355" y="505" text-anchor="middle">Auto-sync</text>
+    <text class="elbl" data-e="e-u2rp" x="975" y="605">1:N</text>
+    <text class="elbl" data-e="e-v2rp" x="1155" y="615" text-anchor="end">1:N</text>
+
+    <!-- Nodes: Client -->
+    <g class="node" data-k="client">
+      <rect x="65" y="145" width="160" height="70"/>
+      <text class="t" x="85" y="170">React SPA</text>
+      <text class="m" x="85" y="190">Vite + React</text>
+    </g>
+
+    <!-- Nodes: Security -->
+    <g class="node auth" data-k="jwt">
+      <rect x="325" y="145" width="160" height="90"/>
+      <text class="t" x="345" y="170">JwtAuthFilter</text>
+      <text class="m" x="345" y="190">OncePerRequest</text>
+      <text class="k" x="345" y="210">Validates Token</text>
+    </g>
+    <g class="node auth" data-k="sec">
+      <rect x="325" y="270" width="160" height="65"/>
+      <text class="t" x="345" y="295">ContextHolder</text>
+      <text class="m" x="345" y="315">Stores Auth</text>
+    </g>
+
+    <!-- Nodes: 3-Tier -->
+    <g class="node" data-k="ctrl">
+      <rect x="625" y="145" width="160" height="90"/>
+      <text class="t" x="645" y="170">Controllers</text>
+      <text class="m" x="645" y="190">REST endpoints</text>
+      <text class="m" x="645" y="210">Authentication.getName()</text>
+    </g>
+    
+    <g class="node err" data-k="exc">
+      <rect x="625" y="360" width="180" height="65"/>
+      <text class="t" x="645" y="385">GlobalExceptionHandler</text>
+      <text class="k" x="645" y="405">@RestControllerAdvice</text>
+    </g>
+
+    <g class="node biz" data-k="svc">
+      <rect x="885" y="145" width="160" height="90"/>
+      <text class="t" x="905" y="170">Services</text>
+      <text class="m" x="905" y="190">Business Logic</text>
+      <text class="k" x="905" y="210">Constructor Injection</text>
+    </g>
+
+    <g class="node" data-k="repo">
+      <rect x="1155" y="145" width="200" height="90"/>
+      <text class="t" x="1175" y="170">Repositories</text>
+      <text class="m" x="1175" y="190">JpaRepository</text>
+      <text class="k" x="1175" y="210">Spring Data JPA</text>
+    </g>
+
+    <!-- Nodes: Entities -->
+    <g class="node ent" data-k="user">
+      <rect x="885" y="480" width="160" height="75"/>
+      <text class="t" x="905" y="505">User</text>
+      <text class="m" x="905" y="525">role, username</text>
+      <text class="m" x="905" y="540">password (BCrypt)</text>
+    </g>
+
+    <g class="node ent" data-k="vocab">
+      <rect x="1125" y="480" width="180" height="75"/>
+      <text class="t" x="1145" y="505">Vocabulary</text>
+      <text class="m" x="1145" y="525">meaning, onyomi...</text>
+      <text class="m" x="1145" y="540">strokeCount</text>
+    </g>
+
+    <g class="node ent" data-k="rp">
+      <rect x="885" y="655" width="160" height="75"/>
+      <text class="t" x="905" y="680">ReviewProgress</text>
+      <text class="m" x="905" y="700">Link: User + Vocab</text>
+      <text class="m" x="905" y="715">SM-2 algorithm data</text>
+    </g>
+
+    <g class="node ent" data-k="kanji">
+      <rect x="1405" y="480" width="130" height="75"/>
+      <text class="t" x="1425" y="505">Kanji</text>
+      <text class="m" x="1425" y="525">Unified Search</text>
+      <text class="k" x="1425" y="540">Independent</text>
+    </g>
+
+  </g>
+</svg>
+
+  <div id="zoom-level">100%</div>
+
+  <div class="card" id="flowcap">
+    <div class="close-btn" onclick="this.parentElement.classList.remove('show')">×</div>
+    <div class="fname" id="f-name"></div>
+    <ol id="f-steps"></ol>
+  </div>
+
+  <div class="card" id="detail">
+    <div class="close-btn" onclick="this.parentElement.classList.remove('show')">×</div>
+    <h3 id="d-title">Click a node</h3>
+    <div class="meta" id="d-meta">Detail view</div>
+    <p id="d-body">Explore the Japan-Kanji architecture by clicking on the nodes or selecting a flow from the top bar.</p>
+  </div>
+</div>
+
+<script>
+const DETAIL = {
+  client: { t:"React SPA", m:"Vite + TailwindCSS", b:"Giao diện Frontend. Quản lý trạng thái bằng AuthContext (chứa token, username, userId, role)." },
+  jwt: { t:"JwtAuthenticationFilter", m:"Spring Security", b:"Đứng trước mọi request (trừ <code>/api/auth/**</code>). Trích xuất Bearer Token, kiểm tra hợp lệ và thiết lập thông tin xác thực." },
+  sec: { t:"SecurityContextHolder", m:"Thread Local Context", b:"Lưu trữ đối tượng <code>Authentication</code> của User hiện tại để Controller dễ dàng truy xuất thông qua <code>authentication.getName()</code>." },
+  ctrl: { t:"Controllers", m:"Tầng giao tiếp", b:"Chỉ làm nhiệm vụ nhận Request và trả Response (REST endpoint). KHÔNG chứa logic nghiệp vụ, uỷ quyền xử lý cho Service." },
+  exc: { t:"GlobalExceptionHandler", m:"@RestControllerAdvice", b:"Tập trung xử lý mọi Exception bị ném ra từ Controller/Service và đóng gói thành ErrorResponse chuẩn hóa." },
+  svc: { t:"Services", m:"Tầng nghiệp vụ", b:"Xử lý toàn bộ logic phức tạp (thuật toán SM-2, đồng bộ Kanji, v.v). Giao tiếp chéo qua Constructor Injection, tuyệt đối không dùng <code>@Autowired</code> field." },
+  repo: { t:"Repositories", m:"Data Access", b:"Mở rộng <code>JpaRepository</code>. Spring Data JPA tự động sinh câu truy vấn SQL (Hibernate). Nhận/Lưu dữ liệu từ DB." },
+  user: { t:"Entity: User", m:"Bảng users", b:"Lưu thông tin đăng nhập. <code>password</code> luôn được băm bằng BCrypt. Có thuộc tính <code>role</code> (ADMIN, USER) để phân quyền UI/API." },
+  vocab: { t:"Entity: Vocabulary", m:"Bảng vocabularies", b:"Lưu trữ từ vựng (bao gồm Hán tự). Quản lý bởi Admin. Có trường mới <code>strokeCount</code>." },
+  rp: { t:"Entity: ReviewProgress", m:"Bảng review_progress", b:"Thực thể trung gian (N-N) kết nối 1 User và 1 Vocabulary. Lưu trữ thông tin ôn tập (easiness, interval, nextReviewDate) cho thuật toán SM-2." },
+  kanji: { t:"Entity: Kanji", m:"Bảng kanji", b:"Bảng độc lập chuyên tra cứu Kanji. Được tự động đồng bộ (auto-sync) từ Vocabulary nếu từ đó có độ dài 1 ký tự." }
+};
+
+const FLOWS = {
+  auth: {
+    name: "JWT Authentication Flow",
+    edges: ["e-c2f", "e-f2s", "e-f2c"],
+    nodes: ["client", "jwt", "sec", "ctrl"],
+    steps: ["Client gửi Request kèm <code>Bearer token</code>", "<code>JwtAuthFilter</code> giải mã token", "Nếu hợp lệ, lưu vào <code>SecurityContextHolder</code>", "Filter chain tiếp tục đẩy Request tới Controller"]
+  },
+  data: {
+    name: "Standard Data Flow (3-Tier)",
+    edges: ["e-c2s", "e-s2r", "e-r2u", "e-r2v"],
+    nodes: ["ctrl", "svc", "repo", "user", "vocab"],
+    steps: ["Controller nhận HTTP Request, gọi hàm của Service tương ứng", "Service xử lý logic nghiệp vụ", "Service gọi Repository để lưu/cập nhật Entity", "Repository tương tác với Postgres Database thông qua JPA"]
+  },
+  error: {
+    name: "Global Error Handling",
+    edges: ["e-errc", "e-errs", "e-errr"],
+    nodes: ["ctrl", "svc", "repo", "exc"],
+    steps: ["Repository / Service / Controller ném <code>Exception</code>", "<code>GlobalExceptionHandler</code> bắt các lỗi này", "Trả về JSON Error chuẩn (400, 404, 500) mà không crash app"]
+  }
+};
+
+const stage = document.getElementById('stage');
+const svgContent = document.getElementById('svg-content');
+const nodes = document.querySelectorAll('.node');
+const edges = document.querySelectorAll('.edge');
+const elbls = document.querySelectorAll('.elbl');
+const chips = document.querySelectorAll('.chip');
+const fcap = document.getElementById('flowcap');
+const detail = document.getElementById('detail');
+const zoomLevelText = document.getElementById('zoom-level');
+
+function setFlow(key) {
+  chips.forEach(c => c.classList.toggle('on', c.dataset.flow === key));
+  edges.forEach(e => e.classList.remove('lit'));
+  elbls.forEach(l => l.classList.remove('lit'));
+  nodes.forEach(n => n.classList.remove('lit'));
+  
+  if (key === 'all') { 
+    stage.classList.remove('flowing'); 
+    fcap.classList.remove('show'); 
+    return; 
+  }
+  
+  const f = FLOWS[key];
+  stage.classList.add('flowing');
+  f.edges.forEach(id => document.getElementById(id)?.classList.add('lit'));
+  elbls.forEach(l => { if (f.edges.includes(l.dataset.e)) l.classList.add('lit'); });
+  f.nodes.forEach(k => document.querySelector(`.node[data-k="${k}"]`)?.classList.add('lit'));
+  
+  document.getElementById('f-name').textContent = f.name;
+  document.getElementById('f-steps').innerHTML = f.steps.map(s => `<li>${s}</li>`).join('');
+  fcap.classList.add('show');
+}
+chips.forEach(c => c.addEventListener('click', () => setFlow(c.dataset.flow)));
+
+let isDragging = false;
+let startPos = {x:0, y:0};
+nodes.forEach(n => {
+  n.addEventListener('mousedown', e => {
+    isDragging = false;
+    startPos = {x: e.clientX, y: e.clientY};
+  });
+  n.addEventListener('click', e => {
+    if (Math.hypot(e.clientX - startPos.x, e.clientY - startPos.y) > 5) return;
+    e.stopPropagation();
+    
+    nodes.forEach(x => x.classList.remove('sel'));
+    n.classList.add('sel');
+    const d = DETAIL[n.dataset.k];
+    if (!d) return;
+    document.getElementById('d-title').textContent = d.t;
+    document.getElementById('d-meta').textContent = d.m;
+    document.getElementById('d-body').innerHTML = d.b;
+    detail.classList.add('show');
+  }, true);
+});
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const dark = !document.documentElement.classList.contains('dark');
+  document.documentElement.classList.toggle('dark', dark);
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+});
+
+let transform = { x: 0, y: 0, scale: 1 };
+
+function updateTransform() {
+  svgContent.setAttribute('transform', `translate(${transform.x}, ${transform.y}) scale(${transform.scale})`);
+  zoomLevelText.textContent = Math.round(transform.scale * 100) + '%';
+}
+
+stage.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = stage.getBoundingClientRect();
+  const pointerX = e.clientX - rect.left;
+  const pointerY = e.clientY - rect.top;
+  
+  const svgX = (pointerX - transform.x) / transform.scale;
+  const svgY = (pointerY - transform.y) / transform.scale;
+
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  transform.scale = Math.max(0.2, Math.min(transform.scale * delta, 5));
+  
+  transform.x = pointerX - svgX * transform.scale;
+  transform.y = pointerY - svgY * transform.scale;
+  
+  updateTransform();
+}, { passive: false });
+
+let dragStart = null;
+stage.addEventListener('mousedown', e => {
+  if (e.target.closest('.card') || e.target.closest('.bar')) return;
+  dragStart = { x: e.clientX - transform.x, y: e.clientY - transform.y };
+});
+window.addEventListener('mousemove', e => {
+  if (!dragStart) return;
+  transform.x = e.clientX - dragStart.x;
+  transform.y = e.clientY - dragStart.y;
+  updateTransform();
+  
+  // suppress clicks after dragging
+  isDragging = true;
+});
+window.addEventListener('mouseup', (e) => {
+  dragStart = null;
+});
+</script>
+</body>
+</html>
