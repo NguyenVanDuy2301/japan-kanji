@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.io.InputStream;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -58,7 +57,7 @@ public class DataSeeder implements CommandLineRunner {
             user1.setRole("USER");
             userRepository.save(user1);
         }
-        
+
         if (!userRepository.existsByUsername("user2")) {
             User user2 = new User();
             user2.setUsername("user2");
@@ -81,10 +80,11 @@ public class DataSeeder implements CommandLineRunner {
         try (InputStream is = getClass().getResourceAsStream("/kanji-seed.json")) {
             if (is != null) {
                 ObjectMapper objectMapper = new ObjectMapper();
-                List<Kanji> kanjis = objectMapper.readValue(is, new TypeReference<List<Kanji>>() {});
+                List<Kanji> kanjis = objectMapper.readValue(is, new TypeReference<List<Kanji>>() {
+                });
                 vocabularies = kanjis.stream().map(k -> new Vocabulary(
-                        null, k.getCharacter(), k.getOnyomi(), k.getKunyomi(), k.getHanViet(), k.getMeaning(), k.getJlptLevel(), "noun", k.getStrokeCount()
-                )).collect(Collectors.toList());
+                        null, k.getCharacter(), k.getOnyomi(), k.getKunyomi(), k.getHanViet(), k.getMeaning(),
+                        k.getJlptLevel(), "noun", k.getStrokeCount())).collect(Collectors.toList());
             } else {
                 throw new RuntimeException("Could not find kanji-seed.json");
             }
@@ -109,11 +109,12 @@ public class DataSeeder implements CommandLineRunner {
         if (kanjiRepository.count() > 0) {
             return; // Đã có dữ liệu
         }
-        
+
         try (InputStream is = getClass().getResourceAsStream("/kanji-seed.json")) {
             if (is != null) {
                 ObjectMapper objectMapper = new ObjectMapper();
-                List<Kanji> kanjis = objectMapper.readValue(is, new TypeReference<List<Kanji>>() {});
+                List<Kanji> kanjis = objectMapper.readValue(is, new TypeReference<List<Kanji>>() {
+                });
                 kanjiRepository.saveAll(kanjis);
                 System.out.println("Seeded " + kanjis.size() + " Kanjis from kanji-seed.json");
             } else {

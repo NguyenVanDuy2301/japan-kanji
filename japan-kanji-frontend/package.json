@@ -14,11 +14,14 @@
     "@astryxdesign/core": "^0.1.7",
     "@astryxdesign/theme-neutral": "^0.1.7",
     "axios": "^1.18.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.42.2",
     "lucide-react": "^1.25.0",
     "papaparse": "^5.5.4",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router-dom": "^7.18.1"
+    "react-router-dom": "^7.18.1",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@astryxdesign/cli": "^0.1.7",

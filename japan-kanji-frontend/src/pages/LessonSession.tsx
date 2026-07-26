@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, RefreshCw, Bookmark } from "lucide-react";
+import { ArrowLeft, Bookmark, CheckCircle2, RefreshCw } from "lucide-react";
 import { studyService } from "../services/study.service";
 import { deckService } from "../services/deck.service";
 import type { VocabularyResponse } from "../types/vocabulary.types";
-import Flashcard from "../components/ui/Flashcard";
+import { motion, AnimatePresence } from "framer-motion";
+import clsx from "clsx";
 
 export default function LessonSession() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'new' | 'practice' | 'loading'>('loading');
+  const [mode, setMode] = useState<"new" | "practice" | "loading">("loading");
 
   const [vocabularies, setVocabularies] = useState<VocabularyResponse[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isFinished, setIsFinished] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -23,21 +24,20 @@ export default function LessonSession() {
     const fetchLessons = async () => {
       try {
         if (!deckId) return;
-        
+
         // Check if deck is saved
         const savedDecks = await deckService.getSavedDecks();
-        setIsSaved(savedDecks.some(d => d.id === Number(deckId)));
+        setIsSaved(savedDecks.some((d) => d.id === Number(deckId)));
 
         let data = await studyService.getLessons(Number(deckId), 10);
-        
+
         if (data.length > 0) {
-          setMode('new');
+          setMode("new");
         } else {
-          // No new words -> fallback to practice mode automatically
           data = await studyService.getPractice(Number(deckId));
-          setMode('practice');
+          setMode("practice");
         }
-        
+
         setVocabularies(data);
       } catch (error) {
         console.error("Failed to fetch lessons:", error);
@@ -67,62 +67,50 @@ export default function LessonSession() {
   };
 
   const handleNext = async () => {
-    if (currentIndex < vocabularies.length && mode === 'new') {
+    if (currentIndex < vocabularies.length && mode === "new") {
       const currentVocab = vocabularies[currentIndex];
-      // Mark as studied by submitting an initial review
       try {
-        await studyService.submitReview(currentVocab.id, true);
+        await studyService.submitReview(currentVocab.id, 4);
       } catch (error) {
         console.error("Failed to submit review:", error);
       }
     }
 
     if (currentIndex < vocabularies.length - 1) {
-      setIsFlipped(false);
-      setTimeout(() => setCurrentIndex(prev => prev + 1), 150);
+      setIsAnswerRevealed(false);
+      setTimeout(() => setCurrentIndex((prev) => prev + 1), 150);
     } else {
       setIsFinished(true);
     }
   };
 
-  if (isLoading) {
+  if (isLoading || mode === "loading") {
     return (
-      <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
-      </div>
-    );
-  }
-
-  if (mode === 'loading') {
-    return (
-      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      <div className="min-h-screen bg-[var(--color-surface-1)] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[var(--color-ink-inverse-2)] border-t-[var(--color-accent-1)] rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (vocabularies.length === 0) {
     return (
-      <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center p-4">
-        <div className="bg-neutral-800 rounded-3xl p-10 max-w-md w-full text-center shadow-2xl border border-neutral-700">
-          <div className="w-20 h-20 bg-neutral-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Check size={40} className="text-neutral-500" />
+      <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-[var(--color-paper-1)] rounded-3xl p-10 text-center shadow-2xl border border-[oklch(0.90_0.01_250)]">
+          <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 size={32} className="text-neutral-400" />
           </div>
-          <h2 className="text-3xl font-bold text-white mb-4">
+          <h2 className="text-2xl font-bold text-[var(--color-ink-1)] mb-2">
             Bộ bài trống!
           </h2>
-          <p className="text-neutral-400 mb-8">
+          <p className="text-[var(--color-ink-2)] mb-8">
             Bộ bài này chưa có từ vựng nào. Hãy thêm từ vựng trước khi học.
           </p>
-          
-          <div className="space-y-4">
-            <button 
-              onClick={() => navigate('/')}
-              className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-[0_4px_14px_0_rgba(220,38,38,0.39)]"
-            >
-              Về Trang Chủ
-            </button>
-          </div>
+          <button
+            onClick={() => navigate("/")}
+            className="w-full px-6 py-4 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] text-[var(--color-ink-inverse-1)] font-bold rounded-xl transition-colors"
+          >
+            Quay về Tổng quan
+          </button>
         </div>
       </div>
     );
@@ -130,30 +118,33 @@ export default function LessonSession() {
 
   if (isFinished) {
     return (
-      <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center p-4">
-        <div className="bg-neutral-800 rounded-3xl p-10 max-w-md w-full text-center shadow-2xl border border-neutral-700">
-          <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Check size={40} className="text-green-500" />
+      <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-[var(--color-paper-1)] rounded-3xl p-10 text-center shadow-2xl border border-[oklch(0.90_0.01_250)]">
+          <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 size={32} className="text-green-500" />
           </div>
-          <h2 className="text-3xl font-bold text-white mb-4">Hoàn Thành {mode === 'practice' ? 'Luyện Tập' : 'Bài Học'}!</h2>
-          <p className="text-neutral-400 mb-8">Bạn đã học {vocabularies.length} chữ Kanji hôm nay. Làm tốt lắm!</p>
-          
-          <div className="space-y-4">
-            <button 
+          <h2 className="text-2xl font-bold text-[var(--color-ink-1)] mb-2">
+            Hoàn Thành {mode === "practice" ? "Luyện Tập" : "Bài Học"}!
+          </h2>
+          <p className="text-[var(--color-ink-2)] mb-8">
+            Bạn đã học {vocabularies.length} chữ Kanji hôm nay. Làm tốt lắm!
+          </p>
+          <div className="flex flex-col gap-3">
+            <button
               onClick={() => {
                 setCurrentIndex(0);
-                setIsFlipped(false);
+                setIsAnswerRevealed(false);
                 setIsFinished(false);
               }}
-              className="w-full py-4 bg-white hover:bg-neutral-100 text-neutral-900 font-bold rounded-xl transition-colors shadow-lg"
+              className="w-full px-6 py-4 bg-neutral-100 hover:bg-neutral-200 text-[var(--color-ink-1)] font-bold rounded-xl transition-colors"
             >
-              Học Lại Ngay Bây Giờ
+              Học lại từ đầu
             </button>
-            <button 
-              onClick={() => navigate('/')}
-              className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-[0_4px_14px_0_rgba(220,38,38,0.39)]"
+            <button
+              onClick={() => navigate("/")}
+              className="w-full px-6 py-4 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] text-[var(--color-ink-inverse-1)] font-bold rounded-xl transition-colors"
             >
-              Về Trang Chủ
+              Quay về Tổng quan
             </button>
           </div>
         </div>
@@ -162,83 +153,164 @@ export default function LessonSession() {
   }
 
   const currentVocab = vocabularies[currentIndex];
-  const progress = ((currentIndex) / vocabularies.length) * 100;
+  const progress = (currentIndex / vocabularies.length) * 100;
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-white font-sans overflow-hidden flex flex-col">
-      {/* Header */}
-      <header className="p-6 flex items-center justify-between z-10 relative">
-        <button 
-          onClick={() => navigate('/')}
-          className="w-12 h-12 flex items-center justify-center rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors"
+    <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col font-sans">
+      {/* Top Header */}
+      <header className="p-6 flex items-center justify-between">
+        <button
+          onClick={() => navigate("/")}
+          className="p-2 text-[var(--color-ink-inverse-2)] hover:text-white transition-colors"
         >
           <ArrowLeft size={24} />
         </button>
-        <div className="flex-1 max-w-md mx-6">
-          <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-red-500 to-orange-500 transition-all duration-300 ease-out"
+
+        <div className="flex-1 max-w-md mx-6 flex items-center gap-4">
+          <div className="h-1.5 flex-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[var(--color-accent-1)] transition-all duration-300"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          <div className="text-center text-sm font-medium text-neutral-400 mt-2">
-            {currentIndex + 1} / {vocabularies.length}
-          </div>
+          <span className="text-xs font-bold text-[var(--color-ink-inverse-2)] tracking-wider">
+            {currentIndex + 1}/{vocabularies.length}
+          </span>
         </div>
-        <button 
+
+        <button
           onClick={handleToggleSave}
           disabled={isSaving}
-          className={`w-12 h-12 flex items-center justify-center rounded-full transition-colors ${
-            isSaved 
-              ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)]' 
-              : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'
-          }`}
-          title={isSaved ? "Hủy lưu bộ bài" : "Lưu bộ bài"}
+          className={clsx(
+            "p-2 transition-colors focus:outline-none",
+            isSaved
+              ? "text-[var(--color-accent-1)]"
+              : "text-[var(--color-ink-inverse-2)] hover:text-white"
+          )}
         >
           <Bookmark size={24} className={isSaved ? "fill-current" : ""} />
         </button>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-4 relative z-10 w-full max-w-lg mx-auto">
-        
-        {mode === 'practice' && (
-          <div className="absolute top-4 bg-neutral-800 text-neutral-400 px-4 py-1.5 rounded-full text-sm font-semibold border border-neutral-700 animate-fade-in shadow-lg z-20">
-            Đang ở chế độ Luyện Tập
+      {/* Main Content Area */}
+      <main
+        className="flex-1 flex flex-col items-center justify-center p-4 cursor-pointer"
+        onClick={() => navigate("/")}
+      >
+        <motion.div
+          layout
+          onClick={(e) => e.stopPropagation()}
+          className="w-full max-w-[400px] bg-[var(--color-paper-1)] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-[oklch(0.90_0.01_250)] cursor-default"
+        >
+          {/* Top: Kanji Display */}
+          <motion.div
+            layout
+            className="p-10 flex flex-col items-center text-center bg-[var(--color-paper-1)] relative z-10"
+          >
+            <h3 className="text-[10px] font-bold text-[var(--color-accent-1)] uppercase tracking-[0.2em] mb-4">
+              {mode === "practice" ? "Luyện Tập" : "Bài Học Mới"}
+            </h3>
+            <motion.h1
+              layout="position"
+              className={clsx(
+                "font-serif font-bold text-[var(--color-ink-1)] leading-none transition-all duration-500",
+                isAnswerRevealed ? "text-[80px]" : "text-[140px] my-6"
+              )}
+            >
+              {currentVocab.kanji}
+            </motion.h1>
+          </motion.div>
+
+          {/* Middle: Details (Snap up on reveal) */}
+          <AnimatePresence>
+            {isAnswerRevealed && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                animate={{ opacity: 1, height: "auto", scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className="px-10 pb-10 text-center relative z-0 origin-top"
+              >
+                <div className="space-y-6 pt-4 border-t border-[oklch(0.95_0.01_250)]">
+                  <div>
+                    <p className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
+                      Ý nghĩa
+                    </p>
+                    <p className="text-2xl font-bold text-[var(--color-ink-1)]">
+                      {currentVocab.meaning}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
+                      Âm Hán Việt
+                    </p>
+                    <p className="text-lg font-serif text-[var(--color-accent-1)]">
+                      {currentVocab.hanViet}
+                    </p>
+                  </div>
+                  <div className="flex justify-center gap-10 pt-4 hairline-t text-left">
+                    <div>
+                      <span className="block text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
+                        Onyomi
+                      </span>
+                      <span className="font-medium text-[var(--color-ink-1)]">
+                        {currentVocab.onyomi || "—"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
+                        Kunyomi
+                      </span>
+                      <span className="font-medium text-[var(--color-ink-1)]">
+                        {currentVocab.kunyomi || "—"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Bottom: Controls */}
+          <div className="p-6 bg-[oklch(0.97_0.01_250)] border-t border-[oklch(0.90_0.01_250)]">
+            <AnimatePresence mode="wait">
+              {!isAnswerRevealed ? (
+                <motion.div
+                  key="reveal"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <button
+                    onClick={() => setIsAnswerRevealed(true)}
+                    className="w-full py-4 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] text-[var(--color-ink-inverse-1)] font-bold text-base rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                  >
+                    Xem Đáp Án{" "}
+                    <RefreshCw
+                      size={18}
+                      className="text-[var(--color-ink-inverse-2)]"
+                    />
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="next"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <button
+                    onClick={handleNext}
+                    className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold text-base rounded-xl transition-colors shadow-[0_0_15px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-green-500/50"
+                  >
+                    Đã ghi nhớ (Enter) <CheckCircle2 size={20} />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        )}
-
-        <Flashcard 
-          vocabulary={currentVocab} 
-          isFlipped={isFlipped} 
-          onFlip={() => setIsFlipped(!isFlipped)} 
-        />
-
-        {/* Controls */}
-        <div className="mt-12 flex justify-center w-full max-w-md">
-          {isFlipped ? (
-            <button 
-              onClick={(e) => { e.stopPropagation(); handleNext(); }}
-              className="w-full py-4 bg-white hover:bg-neutral-100 text-neutral-900 font-bold rounded-2xl transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] flex items-center justify-center gap-2 text-lg"
-            >
-              Đã Thuộc <Check size={24} className="text-green-600" />
-            </button>
-          ) : (
-            <button 
-              onClick={() => setIsFlipped(true)}
-              className="w-full py-4 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-2xl transition-colors flex items-center justify-center gap-2 text-lg border border-neutral-700"
-            >
-              Xem Đáp Án <RefreshCw size={20} className="text-neutral-400" />
-            </button>
-          )}
-        </div>
+        </motion.div>
       </main>
-      
-      {/* Background Decor */}
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-red-900/20 blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-orange-900/10 blur-[120px]"></div>
-      </div>
     </div>
   );
 }

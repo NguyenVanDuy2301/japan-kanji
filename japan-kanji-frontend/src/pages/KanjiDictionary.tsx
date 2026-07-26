@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { Search, X } from "lucide-react";
-import Navbar from "../components/ui/Navbar";
-import { kanjiService, type KanjiResponse, type KanjiDetailsResponse } from "../services/kanji.service";
+import Sidebar from "../components/ui/Sidebar";
+import {
+  kanjiService,
+  type KanjiResponse,
+  type KanjiDetailsResponse,
+} from "../services/kanji.service";
 
 export default function KanjiDictionary() {
   const [query, setQuery] = useState("");
@@ -9,12 +13,12 @@ export default function KanjiDictionary() {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedKanji, setSelectedKanji] = useState<KanjiDetailsResponse | null>(null);
+  const [selectedKanji, setSelectedKanji] =
+    useState<KanjiDetailsResponse | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
-  // Debounce query
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(query);
@@ -22,12 +26,10 @@ export default function KanjiDictionary() {
     return () => clearTimeout(handler);
   }, [query]);
 
-  // Reset trang về 0 khi từ khóa thay đổi
   useEffect(() => {
     setPage(0);
   }, [debouncedQuery]);
 
-  // Fetch data ngay lập tức khi page hoặc debouncedQuery thay đổi
   useEffect(() => {
     fetchKanjis(debouncedQuery, page);
   }, [debouncedQuery, page]);
@@ -35,12 +37,14 @@ export default function KanjiDictionary() {
   const fetchKanjis = async (q: string, p: number) => {
     setIsLoading(true);
     try {
-      const results = await kanjiService.searchKanji(q, p, 10);
+      const results = await kanjiService.searchKanji(q, p, 15); // Changed to 15 to better fit grid
       setKanjis(results.content);
       setTotalPages(results.totalPages);
-      
-      // Cuộn lên mượt mà khi đổi trang
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      const container = document.getElementById("scroll-container");
+      if (container) {
+        container.scrollTo({ top: 0, behavior: "smooth" });
+      }
     } catch (error) {
       console.error("Failed to search kanji:", error);
     } finally {
@@ -61,141 +65,184 @@ export default function KanjiDictionary() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 font-sans">
-      <Navbar />
+    <div className="flex h-screen bg-[var(--color-paper-2)] overflow-hidden font-sans">
+      <Sidebar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <h1 className="text-4xl font-extrabold text-neutral-900 mb-4 tracking-tight">Từ Điển Kanji</h1>
-          <p className="text-lg text-neutral-600 mb-8">
-            Tra cứu thông tin chữ Hán, bộ thủ, số nét và các từ vựng liên quan một cách nhanh chóng.
-          </p>
-          
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-6 w-6 text-neutral-400" />
+      <main
+        id="scroll-container"
+        className="flex-1 overflow-y-auto p-8 lg:p-12 relative"
+      >
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="max-w-3xl mb-12">
+            <h1 className="text-4xl font-extrabold text-[var(--color-ink-1)] mb-4 tracking-tight">
+              Từ Điển Kanji
+            </h1>
+            <p className="text-lg text-[var(--color-ink-2)] mb-8">
+              Tra cứu thông tin chữ Hán, bộ thủ, số nét và các từ vựng liên quan
+              một cách nhanh chóng.
+            </p>
+
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                <Search className="h-6 w-6 text-[var(--color-ink-3)] group-focus-within:text-[var(--color-accent-1)] transition-colors" />
+              </div>
+              <input
+                type="text"
+                className="block w-full pl-14 pr-6 py-5 rounded-none bg-[var(--color-paper-1)] border border-[var(--color-ink-2)] focus:border-[var(--color-ink-1)] focus:ring-0 text-lg shadow-sm transition-all focus:shadow-md text-[var(--color-ink-1)] placeholder:text-[var(--color-ink-3)]"
+                placeholder="Nhập chữ Hán, Romaji, hoặc Nghĩa Hán Việt..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              className="block w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-neutral-200 focus:border-red-500 focus:ring-0 text-lg shadow-sm transition-colors"
-              placeholder="Nhập chữ Hán, Romaji, hoặc Nghĩa Hán Việt..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
           </div>
-        </div>
 
-        {isLoading && !kanjis.length ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {kanjis.map((k) => (
-              <div 
-                key={k.id} 
-                onClick={() => handleSelectKanji(k.character)}
-                className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md border border-neutral-200 cursor-pointer transition-all hover:border-red-300 text-center flex flex-col items-center group"
+          {isLoading && !kanjis.length ? (
+            <div className="flex justify-center py-12">
+              <div className="w-8 h-8 border-2 border-[var(--color-ink-3)] border-t-[var(--color-ink-1)] rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              {kanjis.map((k) => (
+                <div
+                  key={k.id}
+                  onClick={() => handleSelectKanji(k.character)}
+                  className="bg-[var(--color-paper-1)] pt-6 flex flex-col items-center shadow-sm hover:shadow-lg border border-[var(--color-ink-2)] cursor-pointer transition-all hover:border-[var(--color-ink-1)] hover:-translate-y-1 text-center group overflow-hidden"
+                >
+                  <div className="text-5xl font-serif font-bold text-[var(--color-ink-1)] mb-4 group-hover:text-[var(--color-accent-1)] transition-colors px-6">
+                    {k.character}
+                  </div>
+                  <div className="text-lg font-bold text-[var(--color-ink-1)] px-6">
+                    {k.hanViet}
+                  </div>
+                  <div className="text-sm text-[var(--color-ink-2)] mt-1 line-clamp-1 px-6">
+                    {k.meaning}
+                  </div>
+                  <div className="mt-4 px-6 py-2.5 w-full bg-[var(--color-paper-2)] border-t border-[var(--color-ink-2)] text-sm font-medium text-[var(--color-ink-1)] truncate text-center">
+                    {k.kunyomi || k.onyomi || "—"}
+                  </div>
+                </div>
+              ))}
+
+              {kanjis.length === 0 && !isLoading && (
+                <div className="col-span-full py-20 text-center flex flex-col items-center justify-center">
+                  <Search
+                    size={48}
+                    className="text-[var(--color-ink-3)] mb-4"
+                  />
+                  <p className="text-xl font-bold text-[var(--color-ink-1)]">
+                    Không tìm thấy chữ Hán
+                  </p>
+                  <p className="text-[var(--color-ink-2)] mt-2">
+                    Vui lòng thử lại với một từ khóa khác.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {!isLoading && totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 pt-12 pb-24 border-t border-[var(--color-ink-2)] mt-12">
+              <button
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                className="px-6 py-3 bg-[var(--color-paper-1)] border border-[var(--color-ink-2)] text-[var(--color-ink-1)] hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed font-bold text-sm transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-ink-1)]"
               >
-                <div className="text-5xl font-bold text-neutral-800 mb-4 group-hover:text-red-600 transition-colors">
-                  {k.character}
-                </div>
-                <div className="text-lg font-bold text-neutral-700">{k.hanViet}</div>
-                <div className="text-sm text-neutral-500 mt-1 line-clamp-1">{k.meaning}</div>
-                <div className="mt-3 px-3 py-1 bg-neutral-100 text-xs font-semibold rounded-full text-neutral-600">
-                  {k.jlptLevel}
-                </div>
-              </div>
-            ))}
-            
-            {kanjis.length === 0 && !isLoading && (
-              <div className="col-span-full py-12 text-center text-neutral-500">
-                Không tìm thấy chữ Kanji nào phù hợp.
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Pagination Controls */}
-        {!isLoading && totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 mt-12">
-            <button
-              disabled={page === 0}
-              onClick={() => setPage(p => Math.max(0, p - 1))}
-              className="px-6 py-2 rounded-xl bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
-            >
-              Trang trước
-            </button>
-            <span className="text-neutral-500 font-medium">
-              Trang {page + 1} / {totalPages}
-            </span>
-            <button
-              disabled={page >= totalPages - 1}
-              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-              className="px-6 py-2 rounded-xl bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
-            >
-              Trang sau
-            </button>
-          </div>
-        )}
+                Trang trước
+              </button>
+              <span className="text-[var(--color-ink-2)] font-bold text-sm tracking-wider">
+                TRANG {page + 1} / {totalPages}
+              </span>
+              <button
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                className="px-6 py-3 bg-[var(--color-paper-1)] border border-[var(--color-ink-2)] text-[var(--color-ink-1)] hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed font-bold text-sm transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-ink-1)]"
+              >
+                Trang sau
+              </button>
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Kanji Details Modal */}
       {selectedKanji && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity"
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all"
           onClick={() => setSelectedKanji(null)}
         >
-          <div 
-            className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col transform transition-transform animate-in fade-in zoom-in-95 duration-200"
+          <div
+            className="bg-[var(--color-paper-1)] max-w-3xl w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col transform transition-transform animate-in fade-in zoom-in-95 duration-200 border border-[oklch(0.85_0.01_250)]"
             onClick={(e) => e.stopPropagation()}
           >
-            
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between bg-red-600 text-white">
-              <h3 className="text-xl font-bold">Chi tiết chữ Hán</h3>
-              <button 
+            <div className="px-8 py-5 hairline-b flex items-center justify-between bg-[var(--color-paper-1)]">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--color-ink-2)]">
+                Chi tiết chữ Hán
+              </h3>
+              <button
                 onClick={() => setSelectedKanji(null)}
-                className="text-white/80 hover:text-white p-2 rounded-full hover:bg-red-700 transition-colors"
+                className="text-[var(--color-ink-2)] hover:text-[var(--color-ink-1)] p-2 rounded-full hover:bg-neutral-100 transition-colors focus:outline-none"
               >
                 <X size={20} />
               </button>
             </div>
-            
+
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto">
+            <div className="p-8 overflow-y-auto">
               {isLoadingDetails ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+                <div className="flex justify-center py-20">
+                  <div className="w-8 h-8 border-2 border-[var(--color-ink-3)] border-t-[var(--color-ink-1)] rounded-full animate-spin"></div>
                 </div>
               ) : (
-                <div className="space-y-8">
+                <div className="space-y-12">
                   {/* Top Section */}
-                  <div className="flex gap-8 items-start">
-                    <div className="flex-shrink-0 w-32 h-32 bg-neutral-50 rounded-2xl border-2 border-neutral-200 flex items-center justify-center text-7xl font-bold text-neutral-800 shadow-inner">
+                  <div className="flex flex-col md:flex-row gap-10 items-start">
+                    <div className="flex-shrink-0 w-40 h-40 bg-[var(--color-paper-2)] border border-[var(--color-ink-2)] flex items-center justify-center text-[100px] font-serif font-bold text-[var(--color-ink-1)] shadow-inner">
                       {selectedKanji.character}
                     </div>
-                    <div className="flex-1 space-y-4">
+                    <div className="flex-1 space-y-6 w-full">
                       <div>
-                        <h2 className="text-3xl font-bold text-neutral-900">{selectedKanji.hanViet}</h2>
-                        <p className="text-lg text-neutral-600">{selectedKanji.meaning}</p>
+                        <h2 className="text-4xl font-bold text-[var(--color-ink-1)] mb-2">
+                          {selectedKanji.hanViet}
+                        </h2>
+                        <p className="text-xl text-[var(--color-ink-2)]">
+                          {selectedKanji.meaning}
+                        </p>
                       </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
-                          <div className="text-neutral-500 mb-1">Số nét</div>
-                          <div className="font-bold text-neutral-800">{selectedKanji.strokeCount}</div>
+
+                      <div className="grid grid-cols-2 gap-px bg-[var(--color-ink-2)] border border-[var(--color-ink-2)]">
+                        <div className="bg-[var(--color-paper-1)] p-4 flex flex-col justify-between">
+                          <span className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-wider mb-2">
+                            Số nét
+                          </span>
+                          <span className="font-medium text-lg text-[var(--color-ink-1)]">
+                            {selectedKanji.strokeCount}
+                          </span>
                         </div>
-                        <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
-                          <div className="text-neutral-500 mb-1">Bộ thủ</div>
-                          <div className="font-bold text-neutral-800">{selectedKanji.radical}</div>
+                        <div className="bg-[var(--color-paper-1)] p-4 flex flex-col justify-between">
+                          <span className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-wider mb-2">
+                            Bộ thủ
+                          </span>
+                          <span className="font-serif font-bold text-lg text-[var(--color-accent-1)]">
+                            {selectedKanji.radical}
+                          </span>
                         </div>
-                        <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
-                          <div className="text-neutral-500 mb-1">Onyomi</div>
-                          <div className="font-bold text-neutral-800">{selectedKanji.onyomi || "-"}</div>
+                        <div className="bg-[var(--color-paper-1)] p-4 flex flex-col justify-between">
+                          <span className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-wider mb-2">
+                            Onyomi
+                          </span>
+                          <span className="font-medium text-[var(--color-ink-1)]">
+                            {selectedKanji.onyomi || "-"}
+                          </span>
                         </div>
-                        <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
-                          <div className="text-neutral-500 mb-1">Kunyomi</div>
-                          <div className="font-bold text-neutral-800">{selectedKanji.kunyomi || "-"}</div>
+                        <div className="bg-[var(--color-paper-1)] p-4 flex flex-col justify-between">
+                          <span className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-wider mb-2">
+                            Kunyomi
+                          </span>
+                          <span className="font-medium text-[var(--color-ink-1)]">
+                            {selectedKanji.kunyomi || "-"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -203,38 +250,49 @@ export default function KanjiDictionary() {
 
                   {/* Examples Section */}
                   <div>
-                    <h3 className="text-lg font-bold text-neutral-900 mb-4 border-b pb-2">Từ vựng ví dụ</h3>
-                    {selectedKanji.examples && selectedKanji.examples.length > 0 ? (
-                      <div className="space-y-3">
-                        {selectedKanji.examples.map(ex => (
-                          <div key={ex.id} className="flex items-center justify-between p-4 bg-white border border-neutral-200 rounded-xl hover:border-red-300 transition-colors">
+                    <h3 className="text-sm font-bold text-[var(--color-ink-1)] uppercase tracking-widest mb-6 border-b border-[var(--color-ink-2)] pb-2">
+                      Từ vựng ví dụ
+                    </h3>
+
+                    {selectedKanji.examples &&
+                    selectedKanji.examples.length > 0 ? (
+                      <div className="flex flex-col border border-[var(--color-ink-2)] bg-[var(--color-paper-1)] divide-y divide-[var(--color-ink-2)]">
+                        {selectedKanji.examples.map((ex) => (
+                          <div
+                            key={ex.id}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between p-5 hover:bg-[var(--color-paper-2)] transition-colors gap-4"
+                          >
                             <div className="flex flex-col">
-                              <span className="text-xl font-bold text-neutral-800">{ex.kanji}</span>
-                              <span className="text-sm text-neutral-500">
+                              <span className="text-2xl font-serif font-bold text-[var(--color-ink-1)] mb-1">
+                                {ex.kanji}
+                              </span>
+                              <span className="text-sm text-[var(--color-ink-2)]">
                                 {ex.kunyomi || ex.onyomi} • {ex.hanViet}
                               </span>
                             </div>
-                            <div className="text-right flex flex-col items-end">
-                              <span className="font-medium text-neutral-700">{ex.meaning}</span>
-                              <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md mt-1">{ex.jlptLevel}</span>
+                            <div className="sm:text-right flex flex-col sm:items-end">
+                              <span className="font-bold text-[var(--color-ink-1)] text-lg mb-1">
+                                {ex.meaning}
+                              </span>
+                              <span className="text-[10px] font-bold tracking-wider text-[var(--color-ink-2)] border border-[var(--color-ink-2)] px-2 py-0.5 mt-1 self-start sm:self-end bg-[var(--color-paper-1)]">
+                                {ex.jlptLevel}
+                              </span>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-6 bg-neutral-50 rounded-xl text-neutral-500 border border-neutral-100">
-                        Chưa có từ vựng nào chứa chữ Hán này trong hệ thống.
+                      <div className="text-center py-10 bg-[var(--color-paper-2)] text-[var(--color-ink-2)] border border-[var(--color-ink-2)]">
+                        Chưa có từ vựng ví dụ nào trong hệ thống.
                       </div>
                     )}
                   </div>
                 </div>
               )}
             </div>
-            
           </div>
         </div>
       )}
-
     </div>
   );
 }

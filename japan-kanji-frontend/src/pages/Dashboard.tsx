@@ -1,12 +1,24 @@
 import { useEffect, useState } from "react";
-import { Folder, Plus, Settings, Share2, X, Edit, Trash2 } from "lucide-react";
+import {
+  Folder,
+  Plus,
+  Settings,
+  Share2,
+  X,
+  Edit,
+  Trash2,
+  BarChart3,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { deckService, type DeckResponse } from "../services/deck.service";
 import { studyService } from "../services/study.service";
-import { statisticsService, type StudyStatisticsResponse } from "../services/statistics.service";
+import {
+  statisticsService,
+  type StudyStatisticsResponse,
+} from "../services/statistics.service";
 import { useNavigate } from "react-router-dom";
 import DeckCard from "../components/ui/DeckCard";
-import Navbar from "../components/ui/Navbar";
+import Sidebar from "../components/ui/Sidebar";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -16,7 +28,9 @@ export default function Dashboard() {
   const [customDecks, setCustomDecks] = useState<DeckResponse[]>([]);
   const [savedDecks, setSavedDecks] = useState<DeckResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [statistics, setStatistics] = useState<StudyStatisticsResponse | null>(null);
+  const [statistics, setStatistics] = useState<StudyStatisticsResponse | null>(
+    null
+  );
   const [dueReviewsCount, setDueReviewsCount] = useState(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newDeckTitle, setNewDeckTitle] = useState("");
@@ -34,7 +48,7 @@ export default function Dashboard() {
           user ? deckService.getCustomDecks() : Promise.resolve([]),
           deckService.getSavedDecks(),
           studyService.getDueReviews(),
-          user ? statisticsService.getStatistics() : Promise.resolve(null)
+          user ? statisticsService.getStatistics() : Promise.resolve(null),
         ]);
         setOfficialDecks(official);
         setCustomDecks(custom);
@@ -54,14 +68,23 @@ export default function Dashboard() {
   const handleCreateOrUpdateDeck = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDeckTitle.trim()) return;
-    
+
     setIsCreating(true);
     try {
       if (editingDeck) {
-        const updatedDeck = await deckService.updateCustomDeck(editingDeck.id, newDeckTitle, newDeckDescription);
-        setCustomDecks(customDecks.map(d => d.id === editingDeck.id ? updatedDeck : d));
+        const updatedDeck = await deckService.updateCustomDeck(
+          editingDeck.id,
+          newDeckTitle,
+          newDeckDescription
+        );
+        setCustomDecks(
+          customDecks.map((d) => (d.id === editingDeck.id ? updatedDeck : d))
+        );
       } else {
-        const newDeck = await deckService.createCustomDeck(newDeckTitle, newDeckDescription);
+        const newDeck = await deckService.createCustomDeck(
+          newDeckTitle,
+          newDeckDescription
+        );
         setCustomDecks([...customDecks, newDeck]);
         navigate(`/decks/${newDeck.id}/manage`);
       }
@@ -86,7 +109,7 @@ export default function Dashboard() {
     setIsDeleting(true);
     try {
       await deckService.deleteCustomDeck(deckToDelete);
-      setCustomDecks(customDecks.filter(d => d.id !== deckToDelete));
+      setCustomDecks(customDecks.filter((d) => d.id !== deckToDelete));
       setDeckToDelete(null);
     } catch (error) {
       console.error("Failed to delete deck:", error);
@@ -123,42 +146,48 @@ export default function Dashboard() {
     e.stopPropagation();
     try {
       await deckService.unsaveDeck(deckId);
-      setSavedDecks(savedDecks.filter(d => d.id !== deckId));
+      setSavedDecks(savedDecks.filter((d) => d.id !== deckId));
     } catch (error) {
       console.error("Failed to unsave deck:", error);
     }
   };
 
-  const renderDeckActions = (deck: DeckResponse, type: 'official' | 'custom' | 'saved') => {
+  const renderDeckActions = (
+    deck: DeckResponse,
+    type: "official" | "custom" | "saved"
+  ) => {
     return (
       <>
-        {type === 'custom' && (
+        {type === "custom" && (
           <>
-            <button 
-              onClick={(e) => { e.stopPropagation(); navigate(`/decks/${deck.id}/manage`); }}
-              className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100 flex items-center gap-2"
-              title="Quản lý từ vựng"
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/decks/${deck.id}/manage`);
+              }}
+              className="w-full text-left px-4 py-3 text-sm font-medium hover:bg-neutral-100 flex items-center gap-2"
+              title="Thêm/Xoá từ vựng"
             >
-              <Settings size={18} /> Quản lý
+              <Settings size={18} /> Thêm/Xoá từ vựng
             </button>
-            <button 
+            <button
               onClick={(e) => openEditModal(deck, e)}
-              className="w-full text-left px-4 py-3 text-sm font-medium text-orange-600 hover:bg-orange-50 flex items-center gap-2"
-              title="Chỉnh sửa bộ bài"
+              className="w-full text-left px-4 py-3 text-sm font-medium hover:bg-neutral-100 flex items-center gap-2"
+              title="Đổi tên bộ bài"
             >
-              <Edit size={18} /> Chỉnh sửa
+              <Edit size={18} /> Đổi tên bộ bài
             </button>
-            <button 
+            <button
               onClick={(e) => copyShareLink(deck.id, e)}
-              className="w-full text-left px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+              className="w-full text-left px-4 py-3 text-sm font-medium hover:bg-neutral-100 flex items-center gap-2"
               title="Copy link chia sẻ"
             >
               <Share2 size={18} /> Chia sẻ
             </button>
-            <div className="border-t border-neutral-100 my-1" />
-            <button 
+            <div className="hairline-b my-1" />
+            <button
               onClick={(e) => handleDeleteDeck(deck.id, e)}
-              className="w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
+              className="w-full text-left px-4 py-3 text-sm font-medium text-[var(--color-accent-1)] hover:bg-red-50 flex items-center gap-2"
               title="Xoá bộ bài"
             >
               <Trash2 size={18} /> Xoá
@@ -166,10 +195,10 @@ export default function Dashboard() {
           </>
         )}
 
-        {type === 'saved' && (
-          <button 
+        {type === "saved" && (
+          <button
             onClick={(e) => handleUnsaveDeck(deck.id, e)}
-            className="w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
+            className="w-full text-left px-4 py-3 text-sm font-medium text-[var(--color-accent-1)] hover:bg-red-50 flex items-center gap-2"
             title="Bỏ lưu bộ bài"
           >
             <X size={18} /> Bỏ lưu
@@ -179,250 +208,315 @@ export default function Dashboard() {
     );
   };
 
-  const renderDeckCard = (deck: DeckResponse, type: 'official' | 'custom' | 'saved') => {
+  const renderDeckCard = (
+    deck: DeckResponse,
+    type: "official" | "custom" | "saved"
+  ) => {
     const onStudy = () => navigate(`/study/lesson/${deck.id}`);
     const actions = renderDeckActions(deck, type);
 
-    return <DeckCard key={deck.id} deck={deck} type={type} actions={actions} onStudy={onStudy} />;
+    return (
+      <DeckCard
+        key={deck.id}
+        deck={deck}
+        type={type}
+        actions={actions}
+        onStudy={onStudy}
+      />
+    );
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 font-sans">
-      {/* Header */}
-      <Navbar />
+    <div className="flex h-screen bg-[var(--color-paper-2)] overflow-hidden font-sans">
+      <Sidebar />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="flex-1 overflow-y-auto p-8 lg:p-12">
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+          <div className="flex items-center justify-center h-full">
+            <div className="w-8 h-8 border-2 border-[var(--color-ink-3)] border-t-[var(--color-ink-1)] rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="space-y-16">
-            
-            {/* Progress Statistics */}
-            {statistics && (statistics.masteredCount > 0 || statistics.learningCount > 0 || statistics.unseenCount > 0) && (
-              <section className="bg-white rounded-3xl p-8 shadow-sm border border-neutral-200">
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">Thống kê tiến độ</h2>
-                    <p className="text-neutral-500 mt-1">Theo dõi lượng Kanji bạn đang học và đã ghi nhớ sâu.</p>
-                  </div>
-                  <div className="flex gap-6 text-sm font-medium items-center">
-                    <button 
-                      onClick={async () => {
-                        await fetch('/api/study/force-due', { headers: { Authorization: "Bearer " + localStorage.getItem('token') }});
-                        window.location.reload();
-                      }}
-                      className="px-3 py-1 bg-red-100 text-red-600 rounded-md hover:bg-red-200 text-xs font-bold"
+          <div className="max-w-6xl mx-auto space-y-12">
+            <header className="flex items-end justify-between">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-[var(--color-ink-1)]">
+                  Chào mừng trở lại, {user?.username}
+                </h1>
+                <p className="text-[var(--color-ink-2)] mt-1">
+                  Hôm nay bạn muốn học chữ Hán nào?
+                </p>
+              </div>
+            </header>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left Column: Stats & Due Reviews (Workbench Focus) */}
+              <div className="lg:col-span-1 flex flex-col gap-8">
+                {/* Due Reviews Card */}
+                {dueReviewsCount > 0 ? (
+                  <div className="bg-[var(--color-accent-1)] p-6 text-[var(--color-ink-inverse-1)] flex flex-col gap-4">
+                    <div>
+                      <h3 className="font-bold text-lg mb-1">Đến giờ ôn tập</h3>
+                      <p className="text-sm opacity-90">
+                        {dueReviewsCount} từ vựng đang chờ được mài giũa.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => navigate("/study/review")}
+                      className="bg-white text-[var(--color-accent-1)] font-bold text-sm py-2.5 px-4 w-full hover:bg-neutral-50 transition-colors"
                     >
-                      🛠 Cheat: Bắt ôn tập ngay
+                      Bắt đầu ngay →
                     </button>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <span className="text-neutral-700">Thuộc lòng: {statistics.masteredCount}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-orange-400"></div>
-                      <span className="text-neutral-700">Đang học: {statistics.learningCount}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-neutral-200"></div>
-                      <span className="text-neutral-700">Chưa học: {statistics.unseenCount}</span>
-                    </div>
                   </div>
-                </div>
-                
-                {(() => {
-                  const total = statistics.masteredCount + statistics.learningCount + statistics.unseenCount;
-                  const masteredPct = total > 0 ? (statistics.masteredCount / total) * 100 : 0;
-                  const learningPct = total > 0 ? (statistics.learningCount / total) * 100 : 0;
-                  const unseenPct = total > 0 ? (statistics.unseenCount / total) * 100 : 100;
-                  
-                  return (
-                    <div className="h-6 w-full flex rounded-full overflow-hidden bg-neutral-100">
-                      <div className="bg-green-500 h-full transition-all duration-1000 ease-out" style={{ width: `${masteredPct}%` }}></div>
-                      <div className="bg-orange-400 h-full transition-all duration-1000 ease-out" style={{ width: `${learningPct}%` }}></div>
-                      <div className="bg-neutral-200 h-full transition-all duration-1000 ease-out" style={{ width: `${unseenPct}%` }}></div>
+                ) : (
+                  <div className="bg-[var(--color-paper-1)] p-6 hairline-b hairline-r border border-[oklch(0.90_0.01_250)]">
+                    <h3 className="font-bold text-lg mb-1">Tất cả đã xong</h3>
+                    <p className="text-sm text-[var(--color-ink-2)]">
+                      Bạn không có từ vựng nào cần ôn tập lúc này.
+                    </p>
+                  </div>
+                )}
+
+                {/* Progress Statistics */}
+                {statistics && (
+                  <section className="bg-[var(--color-paper-1)] p-6 border border-[oklch(0.90_0.01_250)]">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="font-bold text-[var(--color-ink-1)] flex items-center gap-2">
+                        <BarChart3 size={18} /> Thống kê tiến độ
+                      </h2>
                     </div>
-                  );
-                })()}
-              </section>
-            )}
 
-            {/* Due Reviews Banner */}
-            {dueReviewsCount > 0 && (
-              <div className="bg-gradient-to-r from-red-600 to-orange-500 rounded-3xl p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">Đến giờ ôn tập rồi!</h2>
-                  <p className="text-red-100">Bạn có <span className="font-bold text-xl">{dueReviewsCount}</span> chữ Kanji cần ôn tập hôm nay để không bị quên.</p>
-                </div>
-                <button 
-                  onClick={() => navigate('/study/review')}
-                  className="px-8 py-4 bg-white text-red-600 font-bold rounded-xl shadow-lg hover:bg-neutral-50 transition-colors whitespace-nowrap"
-                >
-                  Bắt Đầu Ôn Tập
-                </button>
-              </div>
-            )}
-            
-            {/* Official Decks Section */}
-            <section>
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">Khóa Học Chính Thức</h2>
-                  <p className="text-neutral-500 mt-1">Tuyển tập từ vựng chuẩn theo cấp độ JLPT.</p>
-                </div>
-              </div>
-              
-              {officialDecks.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {officialDecks.map(deck => renderDeckCard(deck, 'official'))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-2xl border border-neutral-200 border-dashed p-12 text-center">
-                  <p className="text-neutral-500">Hiện chưa có khóa học chính thức nào.</p>
-                </div>
-              )}
-            </section>
+                    <div className="space-y-4">
+                      {(() => {
+                        const total =
+                          statistics.masteredCount +
+                          statistics.learningCount +
+                          statistics.unseenCount;
+                        const masteredPct =
+                          total > 0
+                            ? (statistics.masteredCount / total) * 100
+                            : 0;
+                        const learningPct =
+                          total > 0
+                            ? (statistics.learningCount / total) * 100
+                            : 0;
+                        const unseenPct =
+                          total > 0
+                            ? (statistics.unseenCount / total) * 100
+                            : 100;
 
-            {/* Custom Decks Section */}
-            <section>
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">Bộ Bài Của Bạn</h2>
-                  <p className="text-neutral-500 mt-1">Bộ sưu tập chữ Hán cá nhân mà bạn muốn chinh phục.</p>
-                </div>
-                <button 
-                  onClick={openCreateModal}
-                  className="flex items-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-black text-white font-semibold rounded-lg shadow-sm transition-colors"
-                >
-                  <Plus size={18} />
-                  <span>Tạo Bộ Bài</span>
-                </button>
+                        return (
+                          <div className="h-1.5 w-full flex bg-neutral-100">
+                            <div
+                              className="bg-neutral-800 transition-all duration-1000 ease-out"
+                              style={{ width: `${masteredPct}%` }}
+                            ></div>
+                            <div
+                              className="bg-neutral-400 transition-all duration-1000 ease-out"
+                              style={{ width: `${learningPct}%` }}
+                            ></div>
+                            <div
+                              className="bg-neutral-200 transition-all duration-1000 ease-out"
+                              style={{ width: `${unseenPct}%` }}
+                            ></div>
+                          </div>
+                        );
+                      })()}
+
+                      <div className="grid grid-cols-2 gap-y-3 text-sm">
+                        <div>
+                          <p className="text-[var(--color-ink-2)] text-xs uppercase tracking-wider mb-0.5">
+                            Thuộc lòng
+                          </p>
+                          <p className="font-bold">
+                            {statistics.masteredCount}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[var(--color-ink-2)] text-xs uppercase tracking-wider mb-0.5">
+                            Đang học
+                          </p>
+                          <p className="font-bold text-neutral-500">
+                            {statistics.learningCount}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[var(--color-ink-2)] text-xs uppercase tracking-wider mb-0.5">
+                            Chưa học
+                          </p>
+                          <p className="font-bold text-neutral-300">
+                            {statistics.unseenCount}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                )}
               </div>
-              
-              {customDecks.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {customDecks.map(deck => renderDeckCard(deck, 'custom'))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-2xl border border-neutral-200 border-dashed p-12 text-center flex flex-col items-center">
-                  <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mb-4 text-neutral-400">
-                    <Folder size={32} />
+
+              {/* Right Column: Decks */}
+              <div className="lg:col-span-2 space-y-12">
+                {/* Official Decks */}
+                <section>
+                  <h2 className="text-lg font-bold text-[var(--color-ink-1)] tracking-tight mb-4 hairline-b pb-2">
+                    Khóa Học Chính Thức
+                  </h2>
+                  {officialDecks.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {officialDecks.map((deck) =>
+                        renderDeckCard(deck, "official")
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-[var(--color-paper-1)] border border-dashed border-[oklch(0.90_0.01_250)] p-8 text-center text-[var(--color-ink-2)] text-sm">
+                      Hiện chưa có khóa học chính thức nào.
+                    </div>
+                  )}
+                </section>
+
+                {/* Custom Decks */}
+                <section>
+                  <div className="flex items-center justify-between mb-4 hairline-b pb-2">
+                    <h2 className="text-lg font-bold text-[var(--color-ink-1)] tracking-tight">
+                      Bộ Bài Của Bạn
+                    </h2>
+                    <button
+                      onClick={openCreateModal}
+                      className="text-xs font-bold text-[var(--color-accent-1)] hover:underline flex items-center gap-1"
+                    >
+                      <Plus size={14} /> TẠO MỚI
+                    </button>
                   </div>
-                  <h3 className="text-lg font-bold text-neutral-900 mb-2">Chưa có bộ bài nào</h3>
-                  <p className="text-neutral-500 max-w-sm mb-6">Tự tạo bộ bài để lưu trữ các chữ Kanji khó nhớ, hoặc từ vựng từ bộ anime yêu thích của bạn.</p>
-                  <button 
-                    onClick={openCreateModal}
-                    className="text-red-600 font-semibold hover:text-red-700"
-                  >
-                    Tạo bộ bài đầu tiên →
-                  </button>
-                </div>
-              )}
-            </section>
 
-            {/* Saved Decks Section */}
-            {savedDecks.length > 0 && (
-              <section>
-                <div className="flex items-center justify-between mb-8">
-                  <div>
-                    <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">Tủ Sách (Đã Lưu)</h2>
-                    <p className="text-neutral-500 mt-1">Những bộ bài bạn đã lưu lại để học sau.</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {savedDecks.map(deck => renderDeckCard(deck, 'saved'))}
-                </div>
-              </section>
-            )}
+                  {customDecks.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {customDecks.map((deck) =>
+                        renderDeckCard(deck, "custom")
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-[var(--color-paper-1)] border border-dashed border-[oklch(0.90_0.01_250)] p-8 text-center flex flex-col items-center">
+                      <Folder size={24} className="text-neutral-300 mb-2" />
+                      <p className="text-[var(--color-ink-2)] text-sm mb-4">
+                        Bạn chưa tạo bộ bài nào.
+                      </p>
+                      <button
+                        onClick={openCreateModal}
+                        className="text-xs font-bold bg-neutral-900 text-white px-4 py-2 hover:bg-black transition-colors"
+                      >
+                        Tạo Bộ Bài Đầu Tiên
+                      </button>
+                    </div>
+                  )}
+                </section>
 
+                {/* Saved Decks */}
+                {savedDecks.length > 0 && (
+                  <section>
+                    <h2 className="text-lg font-bold text-[var(--color-ink-1)] tracking-tight mb-4 hairline-b pb-2">
+                      Tủ Sách Đã Lưu
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {savedDecks.map((deck) => renderDeckCard(deck, "saved"))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </main>
 
-      {/* Create Deck Modal */}
+      {/* Modals remain structurally similar but stylized to match the new crisp look */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-neutral-900">{editingDeck ? "Chỉnh sửa bộ bài" : "Tạo bộ bài mới"}</h3>
-              <button 
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[var(--color-paper-1)] w-full max-w-md shadow-2xl overflow-hidden border border-[oklch(0.90_0.01_250)]">
+            <div className="px-6 py-4 hairline-b flex items-center justify-between bg-neutral-50">
+              <h3 className="text-lg font-bold text-[var(--color-ink-1)]">
+                {editingDeck ? "Chỉnh sửa bộ bài" : "Tạo bộ bài mới"}
+              </h3>
+              <button
                 onClick={() => setIsCreateModalOpen(false)}
-                className="text-neutral-400 hover:text-neutral-600 p-2 rounded-full hover:bg-neutral-100 transition-colors"
+                className="text-neutral-400 hover:text-neutral-800 transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={handleCreateOrUpdateDeck} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Tên bộ bài</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs font-bold text-[var(--color-ink-2)] uppercase tracking-wider mb-1.5">
+                  Tên bộ bài
+                </label>
+                <input
+                  type="text"
                   value={newDeckTitle}
                   onChange={(e) => setNewDeckTitle(e.target.value)}
-                  placeholder="Vd: Kanji anime yêu thích..."
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
+                  placeholder="Vd: Kanji N5..."
+                  className="w-full px-4 py-2.5 bg-[var(--color-paper-2)] border border-[oklch(0.90_0.01_250)] focus:outline-none focus:border-neutral-900 transition-colors text-sm"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Mô tả (tùy chọn)</label>
-                <textarea 
+                <label className="block text-xs font-bold text-[var(--color-ink-2)] uppercase tracking-wider mb-1.5">
+                  Mô tả
+                </label>
+                <textarea
                   value={newDeckDescription}
                   onChange={(e) => setNewDeckDescription(e.target.value)}
-                  placeholder="Vd: Các chữ xuất hiện trong tập 1..."
+                  placeholder="Ghi chú thêm..."
                   rows={3}
-                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all resize-none"
+                  className="w-full px-4 py-2.5 bg-[var(--color-paper-2)] border border-[oklch(0.90_0.01_250)] focus:outline-none focus:border-neutral-900 transition-colors text-sm resize-none"
                 />
               </div>
               <div className="pt-4 flex gap-3">
-                <button 
+                <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="flex-1 px-4 py-3 bg-neutral-100 text-neutral-700 font-semibold rounded-xl hover:bg-neutral-200 transition-colors"
+                  className="flex-1 px-4 py-2.5 text-sm font-bold bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition-colors"
                 >
                   Hủy
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={isCreating || !newDeckTitle.trim()}
-                  className="flex-1 px-4 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center"
+                  className="flex-1 px-4 py-2.5 text-sm font-bold bg-neutral-900 text-white hover:bg-black transition-colors disabled:opacity-50"
                 >
-                  {isCreating ? "Đang lưu..." : (editingDeck ? "Lưu thay đổi" : "Tạo mới")}
+                  {isCreating
+                    ? "Đang lưu..."
+                    : editingDeck
+                      ? "Lưu thay đổi"
+                      : "Tạo mới"}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-      {/* Delete Confirmation Modal */}
+
       {deckToDelete !== null && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-100 transition-opacity">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden transform scale-100 transition-transform">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[var(--color-paper-1)] w-full max-w-sm shadow-2xl overflow-hidden border border-[oklch(0.90_0.01_250)]">
             <div className="p-6">
-              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
-                <Trash2 size={24} />
-              </div>
-              <h2 className="text-xl font-bold text-neutral-900 mb-2">Xoá bộ bài này?</h2>
-              <p className="text-neutral-500 mb-6">
-                Bạn có chắc chắn muốn xoá bộ bài này không? Tất cả từ vựng và tiến độ học tập liên quan sẽ <strong>bị mất vĩnh viễn</strong> và không thể khôi phục.
+              <h2 className="text-lg font-bold text-red-600 mb-2">
+                Xác nhận xoá
+              </h2>
+              <p className="text-sm text-[var(--color-ink-2)] mb-6">
+                Bạn có chắc chắn muốn xoá vĩnh viễn bộ bài này cùng toàn bộ tiến
+                độ học tập?
               </p>
               <div className="flex gap-3">
-                <button 
+                <button
                   type="button"
                   onClick={() => setDeckToDelete(null)}
                   disabled={isDeleting}
-                  className="flex-1 px-4 py-3 bg-neutral-100 text-neutral-700 font-semibold rounded-xl hover:bg-neutral-200 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 text-sm font-bold bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition-colors disabled:opacity-50"
                 >
                   Huỷ
                 </button>
-                <button 
+                <button
                   onClick={confirmDeleteDeck}
                   disabled={isDeleting}
-                  className="flex-1 px-4 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
                 >
                   {isDeleting ? "Đang xoá..." : "Xoá vĩnh viễn"}
                 </button>
@@ -431,7 +525,6 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
