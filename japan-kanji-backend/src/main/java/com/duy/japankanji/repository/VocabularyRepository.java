@@ -13,6 +13,8 @@ import java.util.List;
 public interface VocabularyRepository extends JpaRepository<Vocabulary, Long> {
     List<Vocabulary> findByJlptLevel(String jlptLevel);
     
+    long countByJlptLevel(String jlptLevel);
+    
     Page<Vocabulary> findByKanjiContainingIgnoreCaseOrHanVietContainingIgnoreCase(String kanji, String hanViet, Pageable pageable);
 
     @Query("SELECT v FROM Deck d JOIN d.vocabularies v WHERE d.id = :deckId")

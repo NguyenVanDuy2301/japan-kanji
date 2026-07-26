@@ -35,5 +35,9 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
   - Backend tự động đồng bộ (sync) các từ vựng 1 ký tự sang bảng `kanji` độc lập khi Admin thêm mới/sửa chữa.
   - Sửa lỗi Spring Security chặn mã 500 (trả về 403) và khắc phục xung đột constructor giúp Kanji Dictionary hoạt động ổn định.
 
+- **Gamification & Hệ thống huy hiệu (Badges)**:
+  - **Backend**: Cấu hình `BadgeEventListener` để lắng nghe sự kiện người dùng học xong từ vựng mới (`VocabularyLearnedEvent`). Tính toán phần trăm tiến độ và cấp phát Huy hiệu (Starter, Halfway, Master) cho từng cấp độ JLPT từ N5-N1.
+  - **Frontend**: Xây dựng component `BadgeShowcase.tsx` ngay trên đầu Dashboard với giao diện bắt mắt, có hiệu ứng chuyển động, đánh bóng kim loại cho từng loại huy hiệu. Tinh chỉnh Layout Dashboard thành cấu trúc ngang thẳng hàng hoàn hảo.
+
 ### Còn thiếu (Pending / Missing)
-- Gamification, Hệ thống huy hiệu (Badges), Bảng xếp hạng (Leaderboard) cho Giai đoạn 5.
+- Bảng xếp hạng (Leaderboard) cho Giai đoạn 5.

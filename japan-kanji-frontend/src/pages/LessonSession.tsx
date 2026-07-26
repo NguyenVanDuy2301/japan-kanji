@@ -200,78 +200,81 @@ export default function LessonSession() {
         <motion.div
           layout
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-[400px] bg-[var(--color-paper-1)] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-[oklch(0.90_0.01_250)] cursor-default"
+          className="w-full max-w-[400px] min-h-[500px] bg-[var(--color-paper-1)] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-[oklch(0.90_0.01_250)] cursor-default"
         >
-          {/* Top: Kanji Display */}
-          <motion.div
-            layout
-            className="p-10 flex flex-col items-center text-center bg-[var(--color-paper-1)] relative z-10"
-          >
-            <h3 className="text-[10px] font-bold text-[var(--color-accent-1)] uppercase tracking-[0.2em] mb-4">
-              {mode === "practice" ? "Luyện Tập" : "Bài Học Mới"}
-            </h3>
-            <motion.h1
-              layout="position"
-              className={clsx(
-                "font-serif font-bold text-[var(--color-ink-1)] leading-none transition-all duration-500",
-                isAnswerRevealed ? "text-[80px]" : "text-[140px] my-6"
-              )}
+          {/* Top Wrapper for Kanji and Details */}
+          <div className="flex-1 flex flex-col justify-center">
+            {/* Top: Kanji Display */}
+            <motion.div
+              layout
+              className="p-10 flex flex-col items-center text-center bg-[var(--color-paper-1)] relative z-10"
             >
-              {currentVocab.kanji}
-            </motion.h1>
-          </motion.div>
-
-          {/* Middle: Details (Snap up on reveal) */}
-          <AnimatePresence>
-            {isAnswerRevealed && (
-              <motion.div
-                initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                animate={{ opacity: 1, height: "auto", scale: 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className="px-10 pb-10 text-center relative z-0 origin-top"
+              <h3 className="text-[10px] font-bold text-[var(--color-accent-1)] uppercase tracking-[0.2em] mb-4">
+                {mode === "practice" ? "Luyện Tập" : "Bài Học Mới"}
+              </h3>
+              <motion.h1
+                layout="position"
+                className={clsx(
+                  "font-serif font-bold text-[var(--color-ink-1)] leading-none transition-all duration-500",
+                  isAnswerRevealed ? "text-[80px]" : "text-[140px] my-6"
+                )}
               >
-                <div className="space-y-6 pt-4 border-t border-[oklch(0.95_0.01_250)]">
-                  <div>
-                    <p className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
-                      Ý nghĩa
-                    </p>
-                    <p className="text-2xl font-bold text-[var(--color-ink-1)]">
-                      {currentVocab.meaning}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
-                      Âm Hán Việt
-                    </p>
-                    <p className="text-lg font-serif text-[var(--color-accent-1)]">
-                      {currentVocab.hanViet}
-                    </p>
-                  </div>
-                  <div className="flex justify-center gap-10 pt-4 hairline-t text-left">
+                {currentVocab.kanji}
+              </motion.h1>
+            </motion.div>
+
+            {/* Middle: Details (Snap up on reveal) */}
+            <AnimatePresence>
+              {isAnswerRevealed && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, height: "auto", scale: 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="px-10 pb-10 text-center relative z-0 origin-top"
+                >
+                  <div className="space-y-6 pt-4 border-t border-[oklch(0.95_0.01_250)]">
                     <div>
-                      <span className="block text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
-                        Onyomi
-                      </span>
-                      <span className="font-medium text-[var(--color-ink-1)]">
-                        {currentVocab.onyomi || "—"}
-                      </span>
+                      <p className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
+                        Ý nghĩa
+                      </p>
+                      <p className="text-2xl font-bold text-[var(--color-ink-1)]">
+                        {currentVocab.meaning}
+                      </p>
                     </div>
                     <div>
-                      <span className="block text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
-                        Kunyomi
-                      </span>
-                      <span className="font-medium text-[var(--color-ink-1)]">
-                        {currentVocab.kunyomi || "—"}
-                      </span>
+                      <p className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
+                        Âm Hán Việt
+                      </p>
+                      <p className="text-lg font-serif text-[var(--color-accent-1)]">
+                        {currentVocab.hanViet}
+                      </p>
+                    </div>
+                    <div className="flex justify-center gap-10 pt-4 hairline-t text-left">
+                      <div>
+                        <span className="block text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
+                          Onyomi
+                        </span>
+                        <span className="font-medium text-[var(--color-ink-1)]">
+                          {currentVocab.onyomi || "—"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
+                          Kunyomi
+                        </span>
+                        <span className="font-medium text-[var(--color-ink-1)]">
+                          {currentVocab.kunyomi || "—"}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Bottom: Controls */}
-          <div className="p-6 bg-[oklch(0.97_0.01_250)] border-t border-[oklch(0.90_0.01_250)]">
+          <div className="p-6 bg-[oklch(0.97_0.01_250)] border-t border-[oklch(0.90_0.01_250)] mt-auto">
             <AnimatePresence mode="wait">
               {!isAnswerRevealed ? (
                 <motion.div

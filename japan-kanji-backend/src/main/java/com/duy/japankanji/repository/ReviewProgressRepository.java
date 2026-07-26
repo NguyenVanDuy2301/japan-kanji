@@ -37,4 +37,7 @@ public interface ReviewProgressRepository extends JpaRepository<ReviewProgress, 
 
     @Query("SELECT COUNT(r) FROM ReviewProgress r WHERE r.user.id = :userId AND r.intervalDays <= 21 AND r.repetitions > 0")
     long countLearningByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT COUNT(r) FROM ReviewProgress r WHERE r.user.id = :userId AND r.vocabulary.jlptLevel = :jlptLevel AND r.repetitions > 0")
+    long countLearnedByUserIdAndJlptLevel(@Param("userId") Long userId, @Param("jlptLevel") String jlptLevel);
 }

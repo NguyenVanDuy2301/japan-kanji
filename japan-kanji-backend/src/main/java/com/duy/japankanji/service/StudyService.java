@@ -8,7 +8,9 @@ import com.duy.japankanji.entity.Vocabulary;
 import com.duy.japankanji.repository.ReviewProgressRepository;
 import com.duy.japankanji.repository.UserRepository;
 import com.duy.japankanji.repository.VocabularyRepository;
+import com.duy.japankanji.event.VocabularyLearnedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ public class StudyService {
     private final UserRepository userRepository;
     private final VocabularyRepository vocabularyRepository;
     private final Sm2Service sm2Service;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<VocabularyResponse> getLessons(Long deckId, String username, int limit) {
         User user = userRepository.findByUsername(username).orElseThrow();
@@ -77,6 +80,8 @@ public class StudyService {
         sm2Service.updateProgress(progress, quality);
 
         reviewProgressRepository.save(progress);
+        
+        eventPublisher.publishEvent(new VocabularyLearnedEvent(this, user.getId(), vocabulary.getJlptLevel()));
     }
 
     private VocabularyResponse toResponse(Vocabulary vocabulary) {

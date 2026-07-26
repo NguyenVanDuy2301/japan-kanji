@@ -31,6 +31,9 @@ class StudyServiceTest {
     @Mock
     private Sm2Service sm2Service;
 
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private StudyService studyService;
 

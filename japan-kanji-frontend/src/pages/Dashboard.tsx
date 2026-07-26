@@ -19,6 +19,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import DeckCard from "../components/ui/DeckCard";
 import Sidebar from "../components/ui/Sidebar";
+import { BadgeShowcase } from "../components/ui/BadgeShowcase";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -156,6 +157,8 @@ export default function Dashboard() {
     deck: DeckResponse,
     type: "official" | "custom" | "saved"
   ) => {
+    if (type === "official") return null;
+
     return (
       <>
         {type === "custom" && (
@@ -249,109 +252,123 @@ export default function Dashboard() {
               </div>
             </header>
 
+            {/* Badges Showcase */}
+            <BadgeShowcase />
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column: Stats & Due Reviews (Workbench Focus) */}
               <div className="lg:col-span-1 flex flex-col gap-8">
-                {/* Due Reviews Card */}
-                {dueReviewsCount > 0 ? (
-                  <div className="bg-[var(--color-accent-1)] p-6 text-[var(--color-ink-inverse-1)] flex flex-col gap-4">
-                    <div>
-                      <h3 className="font-bold text-lg mb-1">Đến giờ ôn tập</h3>
-                      <p className="text-sm opacity-90">
-                        {dueReviewsCount} từ vựng đang chờ được mài giũa.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => navigate("/study/review")}
-                      className="bg-white text-[var(--color-accent-1)] font-bold text-sm py-2.5 px-4 w-full hover:bg-neutral-50 transition-colors"
-                    >
-                      Bắt đầu ngay →
-                    </button>
-                  </div>
-                ) : (
-                  <div className="bg-[var(--color-paper-1)] p-6 hairline-b hairline-r border border-[oklch(0.90_0.01_250)]">
-                    <h3 className="font-bold text-lg mb-1">Tất cả đã xong</h3>
-                    <p className="text-sm text-[var(--color-ink-2)]">
-                      Bạn không có từ vựng nào cần ôn tập lúc này.
-                    </p>
-                  </div>
-                )}
-
-                {/* Progress Statistics */}
-                {statistics && (
-                  <section className="bg-[var(--color-paper-1)] p-6 border border-[oklch(0.90_0.01_250)]">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="font-bold text-[var(--color-ink-1)] flex items-center gap-2">
-                        <BarChart3 size={18} /> Thống kê tiến độ
-                      </h2>
-                    </div>
-
-                    <div className="space-y-4">
-                      {(() => {
-                        const total =
-                          statistics.masteredCount +
-                          statistics.learningCount +
-                          statistics.unseenCount;
-                        const masteredPct =
-                          total > 0
-                            ? (statistics.masteredCount / total) * 100
-                            : 0;
-                        const learningPct =
-                          total > 0
-                            ? (statistics.learningCount / total) * 100
-                            : 0;
-                        const unseenPct =
-                          total > 0
-                            ? (statistics.unseenCount / total) * 100
-                            : 100;
-
-                        return (
-                          <div className="h-1.5 w-full flex bg-neutral-100">
-                            <div
-                              className="bg-neutral-800 transition-all duration-1000 ease-out"
-                              style={{ width: `${masteredPct}%` }}
-                            ></div>
-                            <div
-                              className="bg-neutral-400 transition-all duration-1000 ease-out"
-                              style={{ width: `${learningPct}%` }}
-                            ></div>
-                            <div
-                              className="bg-neutral-200 transition-all duration-1000 ease-out"
-                              style={{ width: `${unseenPct}%` }}
-                            ></div>
-                          </div>
-                        );
-                      })()}
-
-                      <div className="grid grid-cols-2 gap-y-3 text-sm">
+                <section>
+                  <h2 className="text-lg font-bold text-[var(--color-ink-1)] tracking-tight mb-4 hairline-b pb-2">
+                    Tiến Độ & Ôn Tập
+                  </h2>
+                  <div className="flex flex-col gap-8">
+                    {/* Due Reviews Card */}
+                    {dueReviewsCount > 0 ? (
+                      <div className="bg-[var(--color-accent-1)] p-6 text-[var(--color-ink-inverse-1)] flex flex-col gap-4">
                         <div>
-                          <p className="text-[var(--color-ink-2)] text-xs uppercase tracking-wider mb-0.5">
-                            Thuộc lòng
-                          </p>
-                          <p className="font-bold">
-                            {statistics.masteredCount}
+                          <h3 className="font-bold text-lg mb-1">
+                            Đến giờ ôn tập
+                          </h3>
+                          <p className="text-sm opacity-90">
+                            {dueReviewsCount} từ vựng đang chờ được mài giũa.
                           </p>
                         </div>
-                        <div>
-                          <p className="text-[var(--color-ink-2)] text-xs uppercase tracking-wider mb-0.5">
-                            Đang học
-                          </p>
-                          <p className="font-bold text-neutral-500">
-                            {statistics.learningCount}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[var(--color-ink-2)] text-xs uppercase tracking-wider mb-0.5">
-                            Chưa học
-                          </p>
-                          <p className="font-bold text-neutral-300">
-                            {statistics.unseenCount}
-                          </p>
-                        </div>
+                        <button
+                          onClick={() => navigate("/study/review")}
+                          className="bg-white text-[var(--color-accent-1)] font-bold text-sm py-2.5 px-4 w-full hover:bg-neutral-50 transition-colors"
+                        >
+                          Bắt đầu ngay →
+                        </button>
                       </div>
-                    </div>
-                  </section>
-                )}
+                    ) : (
+                      <div className="bg-[var(--color-paper-1)] p-6 hairline-b hairline-r border border-[oklch(0.90_0.01_250)]">
+                        <h3 className="font-bold text-lg mb-1">
+                          Tất cả đã xong
+                        </h3>
+                        <p className="text-sm text-[var(--color-ink-2)]">
+                          Bạn không có từ vựng nào cần ôn tập lúc này.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Progress Statistics */}
+                    {statistics && (
+                      <section className="bg-[var(--color-paper-1)] p-6 border border-[oklch(0.90_0.01_250)]">
+                        <div className="flex items-center justify-between mb-4">
+                          <h2 className="font-bold text-[var(--color-ink-1)] flex items-center gap-2">
+                            <BarChart3 size={18} /> Thống kê tiến độ
+                          </h2>
+                        </div>
+
+                        <div className="space-y-4">
+                          {(() => {
+                            const total =
+                              statistics.masteredCount +
+                              statistics.learningCount +
+                              statistics.unseenCount;
+                            const masteredPct =
+                              total > 0
+                                ? (statistics.masteredCount / total) * 100
+                                : 0;
+                            const learningPct =
+                              total > 0
+                                ? (statistics.learningCount / total) * 100
+                                : 0;
+                            const unseenPct =
+                              total > 0
+                                ? (statistics.unseenCount / total) * 100
+                                : 100;
+
+                            return (
+                              <div className="h-1.5 w-full flex bg-neutral-100">
+                                <div
+                                  className="bg-neutral-800 transition-all duration-1000 ease-out"
+                                  style={{ width: `${masteredPct}%` }}
+                                ></div>
+                                <div
+                                  className="bg-neutral-400 transition-all duration-1000 ease-out"
+                                  style={{ width: `${learningPct}%` }}
+                                ></div>
+                                <div
+                                  className="bg-neutral-200 transition-all duration-1000 ease-out"
+                                  style={{ width: `${unseenPct}%` }}
+                                ></div>
+                              </div>
+                            );
+                          })()}
+
+                          <div className="grid grid-cols-2 gap-y-3 text-sm">
+                            <div>
+                              <p className="text-[var(--color-ink-2)] text-xs uppercase tracking-wider mb-0.5">
+                                Thuộc lòng
+                              </p>
+                              <p className="font-bold">
+                                {statistics.masteredCount}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[var(--color-ink-2)] text-xs uppercase tracking-wider mb-0.5">
+                                Đang học
+                              </p>
+                              <p className="font-bold text-neutral-500">
+                                {statistics.learningCount}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[var(--color-ink-2)] text-xs uppercase tracking-wider mb-0.5">
+                                Chưa học
+                              </p>
+                              <p className="font-bold text-neutral-300">
+                                {statistics.unseenCount}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </section>
+                    )}
+                  </div>
+                </section>
               </div>
 
               {/* Right Column: Decks */}

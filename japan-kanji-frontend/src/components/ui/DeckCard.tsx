@@ -1,15 +1,30 @@
-import { BookOpen, Folder, Layers, MoreVertical, ChevronRight } from "lucide-react";
+/* Hallmark · component: DeckCard · genre: modern-minimal · theme: catalog
+ * states: default · hover · focus-visible · active
+ * contrast: pass
+ */
+import {
+  BookOpen,
+  Folder,
+  Layers,
+  MoreVertical,
+  ChevronRight,
+} from "lucide-react";
 import type { DeckResponse } from "../../services/deck.service";
 import { useState, useRef, useEffect } from "react";
 
 interface DeckCardVariantProps {
   deck: DeckResponse;
-  type: 'official' | 'custom' | 'saved';
+  type: "official" | "custom" | "saved";
   actions?: React.ReactNode;
   onStudy?: () => void;
 }
 
-export default function DeckCard({ deck, type, actions, onStudy }: DeckCardVariantProps) {
+export default function DeckCard({
+  deck,
+  type,
+  actions,
+  onStudy,
+}: DeckCardVariantProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -24,51 +39,75 @@ export default function DeckCard({ deck, type, actions, onStudy }: DeckCardVaria
   }, []);
 
   return (
-    <div className="group relative bg-white border border-neutral-200 rounded-3xl p-6 hover:shadow-2xl transition-all duration-300 overflow-visible flex flex-col h-full transform hover:-translate-y-1">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-3xl"></div>
-      
-      <div className="flex items-start justify-between mb-6">
-        <div className={`p-4 rounded-2xl ${type === 'official' ? 'bg-red-50 text-red-600' : type === 'custom' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'} transition-transform group-hover:scale-110`}>
-          {type === 'official' ? <BookOpen size={28} /> : <Folder size={28} />}
+    <div className="group relative bg-[var(--color-paper-1)] border border-[oklch(0.90_0.01_250)] p-4 sm:p-5 hover:shadow-md transition-all duration-300 flex items-center justify-between gap-4 focus-within:ring-2 focus-within:ring-[var(--color-accent-1)] focus-within:ring-offset-2">
+      {/* Left side: Icon + Text */}
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div
+          className={`p-3 ${type === "official" ? "bg-[oklch(0.95_0.10_25)] text-[var(--color-accent-1)]" : type === "custom" ? "bg-[var(--color-paper-3)] text-[var(--color-ink-1)]" : "bg-[oklch(0.95_0.05_250)] text-[var(--color-ink-1)]"} transition-transform group-hover:scale-105 shrink-0`}
+        >
+          {type === "official" ? <BookOpen size={24} /> : <Folder size={24} />}
         </div>
-        
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 rounded-full text-sm font-bold text-neutral-600 shadow-sm border border-neutral-200/50">
-            <Layers size={16} />
-            <span>{deck.vocabularyCount}</span>
-          </div>
 
-          {actions && (
-            <div className="relative" ref={menuRef}>
-              <button 
-                onClick={(e) => { e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
-                className="p-2 hover:bg-neutral-100 rounded-full text-neutral-500 transition-colors"
-              >
-                <MoreVertical size={20} />
-              </button>
-              
-              {isMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-neutral-200/50 overflow-hidden z-20 animate-in fade-in zoom-in duration-200">
-                  <div className="flex flex-col p-1" onClick={() => setIsMenuOpen(false)}>
-                    {actions}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base font-bold text-[var(--color-ink-1)] group-hover:text-[var(--color-accent-1)] transition-colors truncate">
+            {deck.title}
+          </h3>
+          <div className="flex items-center gap-1.5 text-xs text-[var(--color-ink-2)] mt-1 truncate">
+            <Layers size={14} className="shrink-0" />
+            <span className="font-medium shrink-0">
+              {deck.vocabularyCount} từ
+            </span>
+            <span className="opacity-40 mx-1 shrink-0">•</span>
+            <span className="truncate">
+              {deck.description || "Chưa có mô tả"}
+            </span>
+          </div>
         </div>
       </div>
-      
-      <h3 className="text-2xl font-bold text-neutral-900 mb-2 group-hover:text-red-600 transition-colors line-clamp-2 leading-tight">{deck.title}</h3>
-      <p className="text-neutral-500 text-sm line-clamp-2 mb-6">{deck.description || "Chưa có mô tả"}</p>
-      
-      <button 
-        onClick={(e) => { e.stopPropagation(); onStudy?.(); }}
-        className="mt-auto w-full bg-red-50 hover:bg-red-500 hover:text-white text-red-600 font-bold py-4 rounded-2xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm hover:shadow-md"
-      >
-        Bắt Đầu Học 
-        <ChevronRight size={20} className="ml-2 transform group-hover/btn:translate-x-1 transition-transform" />
-      </button>
+
+      {/* Right side: Button + Actions */}
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onStudy?.();
+          }}
+          className="bg-[var(--color-paper-2)] border border-[oklch(0.90_0.01_250)] text-[var(--color-ink-1)] font-bold px-4 py-2 transition-all duration-200 flex items-center justify-center group/btn shadow-sm hover:shadow-md hover:bg-[var(--color-accent-1)] hover:text-[var(--color-paper-1)] hover:border-[var(--color-accent-1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent-1)] active:scale-[0.98] cursor-pointer text-sm"
+        >
+          Học
+          <ChevronRight
+            size={16}
+            className="ml-1 transform group-hover/btn:translate-x-0.5 transition-transform"
+          />
+        </button>
+
+        {actions && (
+          <div className="relative flex items-center" ref={menuRef}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMenuOpen(!isMenuOpen);
+              }}
+              className="p-2 text-[var(--color-ink-2)] transition-colors hover:bg-[var(--color-paper-2)] hover:text-[var(--color-ink-1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink-2)] active:scale-95 cursor-pointer"
+              aria-label="Menu tuỳ chọn"
+              aria-expanded={isMenuOpen}
+            >
+              <MoreVertical size={20} />
+            </button>
+
+            {isMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--color-paper-1)]/95 backdrop-blur-xl shadow-xl border border-[oklch(0.90_0.01_250)] z-20 animate-in fade-in zoom-in duration-200">
+                <div
+                  className="flex flex-col p-1"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {actions}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

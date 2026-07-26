@@ -1,0 +1,709 @@
+﻿diff --git a/japan-kanji-backend/src/main/java/com/duy/japankanji/controller/BadgeController.java b/japan-kanji-backend/src/main/java/com/duy/japankanji/controller/BadgeController.java
+new file mode 100644
+index 0000000..f34b47b
+--- /dev/null
++++ b/japan-kanji-backend/src/main/java/com/duy/japankanji/controller/BadgeController.java
+@@ -0,0 +1,26 @@
++package com.duy.japankanji.controller;
++
++import com.duy.japankanji.dto.BadgeResponse;
++import com.duy.japankanji.service.BadgeService;
++import lombok.RequiredArgsConstructor;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.core.Authentication;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++
++import java.util.List;
++
++@RestController
++@RequestMapping("/api/badges")
++@RequiredArgsConstructor
++public class BadgeController {
++
++    private final BadgeService badgeService;
++
++    @GetMapping("/me")
++    public ResponseEntity<List<BadgeResponse>> getMyBadges(Authentication authentication) {
++        String username = authentication.getName();
++        return ResponseEntity.ok(badgeService.getUserBadges(username));
++    }
++}
+diff --git a/japan-kanji-backend/src/main/java/com/duy/japankanji/dto/BadgeResponse.java b/japan-kanji-backend/src/main/java/com/duy/japankanji/dto/BadgeResponse.java
+new file mode 100644
+index 0000000..2ec499f
+--- /dev/null
++++ b/japan-kanji-backend/src/main/java/com/duy/japankanji/dto/BadgeResponse.java
+@@ -0,0 +1,12 @@
++package com.duy.japankanji.dto;
++
++import java.time.LocalDateTime;
++
++public record BadgeResponse(
++    String badgeType,
++    String title,
++    String description,
++    String jlptLevel,
++    int requiredPercentage,
++    LocalDateTime unlockedAt
++) {}
+diff --git a/japan-kanji-backend/src/main/java/com/duy/japankanji/entity/UserBadge.java b/japan-kanji-backend/src/main/java/com/duy/japankanji/entity/UserBadge.java
+new file mode 100644
+index 0000000..68f381a
+--- /dev/null
++++ b/japan-kanji-backend/src/main/java/com/duy/japankanji/entity/UserBadge.java
+@@ -0,0 +1,36 @@
++package com.duy.japankanji.entity;
++
++import com.duy.japankanji.entity.enums.BadgeType;
++import jakarta.persistence.*;
++import lombok.AllArgsConstructor;
++import lombok.Getter;
++import lombok.NoArgsConstructor;
++import lombok.Setter;
++
++import java.time.LocalDateTime;
++
++@Entity
++@Table(name = "user_badges", uniqueConstraints = {
++        @UniqueConstraint(columnNames = {"user_id", "badge_type"})
++})
++@Getter
++@Setter
++@NoArgsConstructor
++@AllArgsConstructor
++public class UserBadge {
++
++    @Id
++    @GeneratedValue(strategy = GenerationType.IDENTITY)
++    private Long id;
++
++    @ManyToOne(fetch = FetchType.LAZY)
++    @JoinColumn(name = "user_id", nullable = false)
++    private User user;
++
++    @Enumerated(EnumType.STRING)
++    @Column(name = "badge_type", nullable = false)
++    private BadgeType badgeType;
++
++    @Column(name = "unlocked_at", nullable = false)
++    private LocalDateTime unlockedAt = LocalDateTime.now();
++}
+diff --git a/japan-kanji-backend/src/main/java/com/duy/japankanji/entity/enums/BadgeType.java b/japan-kanji-backend/src/main/java/com/duy/japankanji/entity/enums/BadgeType.java
+new file mode 100644
+index 0000000..1c317a2
+--- /dev/null
++++ b/japan-kanji-backend/src/main/java/com/duy/japankanji/entity/enums/BadgeType.java
+@@ -0,0 +1,43 @@
++package com.duy.japankanji.entity.enums;
++
++import lombok.Getter;
++
++@Getter
++public enum BadgeType {
++    // N5 Badges
++    JLPT_N5_10_PERCENT("N5 Starter", "Hß╗ìc ─æ╞░ß╗úc 10% tß╗½ vß╗▒ng N5", "N5", 10),
++    JLPT_N5_50_PERCENT("N5 Halfway", "Hß╗ìc ─æ╞░ß╗úc 50% tß╗½ vß╗▒ng N5", "N5", 50),
++    JLPT_N5_100_PERCENT("N5 Master", "Ho├án th├ánh 100% tß╗½ vß╗▒ng N5", "N5", 100),
++    
++    // N4 Badges
++    JLPT_N4_10_PERCENT("N4 Starter", "Hß╗ìc ─æ╞░ß╗úc 10% tß╗½ vß╗▒ng N4", "N4", 10),
++    JLPT_N4_50_PERCENT("N4 Halfway", "Hß╗ìc ─æ╞░ß╗úc 50% tß╗½ vß╗▒ng N4", "N4", 50),
++    JLPT_N4_100_PERCENT("N4 Master", "Ho├án th├ánh 100% tß╗½ vß╗▒ng N4", "N4", 100),
++
++    // N3 Badges
++    JLPT_N3_10_PERCENT("N3 Starter", "Hß╗ìc ─æ╞░ß╗úc 10% tß╗½ vß╗▒ng N3", "N3", 10),
++    JLPT_N3_50_PERCENT("N3 Halfway", "Hß╗ìc ─æ╞░ß╗úc 50% tß╗½ vß╗▒ng N3", "N3", 50),
++    JLPT_N3_100_PERCENT("N3 Master", "Ho├án th├ánh 100% tß╗½ vß╗▒ng N3", "N3", 100),
++
++    // N2 Badges
++    JLPT_N2_10_PERCENT("N2 Starter", "Hß╗ìc ─æ╞░ß╗úc 10% tß╗½ vß╗▒ng N2", "N2", 10),
++    JLPT_N2_50_PERCENT("N2 Halfway", "Hß╗ìc ─æ╞░ß╗úc 50% tß╗½ vß╗▒ng N2", "N2", 50),
++    JLPT_N2_100_PERCENT("N2 Master", "Ho├án th├ánh 100% tß╗½ vß╗▒ng N2", "N2", 100),
++
++    // N1 Badges
++    JLPT_N1_10_PERCENT("N1 Starter", "Hß╗ìc ─æ╞░ß╗úc 10% tß╗½ vß╗▒ng N1", "N1", 10),
++    JLPT_N1_50_PERCENT("N1 Halfway", "Hß╗ìc ─æ╞░ß╗úc 50% tß╗½ vß╗▒ng N1", "N1", 50),
++    JLPT_N1_100_PERCENT("N1 Master", "Ho├án th├ánh 100% tß╗½ vß╗▒ng N1", "N1", 100);
++
++    private final String title;
++    private final String description;
++    private final String jlptLevel;
++    private final int requiredPercentage;
++
++    BadgeType(String title, String description, String jlptLevel, int requiredPercentage) {
++        this.title = title;
++        this.description = description;
++        this.jlptLevel = jlptLevel;
++        this.requiredPercentage = requiredPercentage;
++    }
++}
+diff --git a/japan-kanji-backend/src/main/java/com/duy/japankanji/event/BadgeEventListener.java b/japan-kanji-backend/src/main/java/com/duy/japankanji/event/BadgeEventListener.java
+new file mode 100644
+index 0000000..fd0ecea
+--- /dev/null
++++ b/japan-kanji-backend/src/main/java/com/duy/japankanji/event/BadgeEventListener.java
+@@ -0,0 +1,64 @@
++package com.duy.japankanji.event;
++
++import com.duy.japankanji.entity.User;
++import com.duy.japankanji.entity.UserBadge;
++import com.duy.japankanji.entity.enums.BadgeType;
++import com.duy.japankanji.repository.ReviewProgressRepository;
++import com.duy.japankanji.repository.UserBadgeRepository;
++import com.duy.japankanji.repository.UserRepository;
++import com.duy.japankanji.repository.VocabularyRepository;
++import lombok.RequiredArgsConstructor;
++import lombok.extern.slf4j.Slf4j;
++import org.springframework.context.event.EventListener;
++import org.springframework.stereotype.Component;
++import org.springframework.transaction.annotation.Transactional;
++
++import java.time.LocalDateTime;
++import java.util.Optional;
++
++@Slf4j
++@Component
++@RequiredArgsConstructor
++public class BadgeEventListener {
++
++    private final ReviewProgressRepository reviewProgressRepository;
++    private final VocabularyRepository vocabularyRepository;
++    private final UserBadgeRepository userBadgeRepository;
++    private final UserRepository userRepository;
++
++    @EventListener
++    @Transactional
++    public void handleVocabularyLearnedEvent(VocabularyLearnedEvent event) {
++        Long userId = event.getUserId();
++        String jlptLevel = event.getJlptLevel();
++
++        if (jlptLevel == null || jlptLevel.isEmpty()) return;
++
++        long totalVocab = vocabularyRepository.countByJlptLevel(jlptLevel);
++        if (totalVocab == 0) return;
++
++        long learnedVocab = reviewProgressRepository.countLearnedByUserIdAndJlptLevel(userId, jlptLevel);
++        
++        double percentage = (double) learnedVocab / totalVocab * 100;
++
++        for (BadgeType badgeType : BadgeType.values()) {
++            if (badgeType.getJlptLevel().equals(jlptLevel) && percentage >= badgeType.getRequiredPercentage()) {
++                if (!userBadgeRepository.existsByUserIdAndBadgeType(userId, badgeType)) {
++                    grantBadge(userId, badgeType);
++                }
++            }
++        }
++    }
++
++    private void grantBadge(Long userId, BadgeType badgeType) {
++        Optional<User> userOpt = userRepository.findById(userId);
++        if (userOpt.isPresent()) {
++            UserBadge userBadge = new UserBadge();
++            userBadge.setUser(userOpt.get());
++            userBadge.setBadgeType(badgeType);
++            userBadge.setUnlockedAt(LocalDateTime.now());
++            userBadgeRepository.save(userBadge);
++            log.info("Granted badge {} to user {}", badgeType.name(), userId);
++        }
++    }
++}
+diff --git a/japan-kanji-backend/src/main/java/com/duy/japankanji/event/VocabularyLearnedEvent.java b/japan-kanji-backend/src/main/java/com/duy/japankanji/event/VocabularyLearnedEvent.java
+new file mode 100644
+index 0000000..a1a4d6e
+--- /dev/null
++++ b/japan-kanji-backend/src/main/java/com/duy/japankanji/event/VocabularyLearnedEvent.java
+@@ -0,0 +1,16 @@
++package com.duy.japankanji.event;
++
++import lombok.Getter;
++import org.springframework.context.ApplicationEvent;
++
++@Getter
++public class VocabularyLearnedEvent extends ApplicationEvent {
++    private final Long userId;
++    private final String jlptLevel;
++
++    public VocabularyLearnedEvent(Object source, Long userId, String jlptLevel) {
++        super(source);
++        this.userId = userId;
++        this.jlptLevel = jlptLevel;
++    }
++}
+diff --git a/japan-kanji-backend/src/main/java/com/duy/japankanji/repository/ReviewProgressRepository.java b/japan-kanji-backend/src/main/java/com/duy/japankanji/repository/ReviewProgressRepository.java
+index 5547fdb..1fbe448 100644
+--- a/japan-kanji-backend/src/main/java/com/duy/japankanji/repository/ReviewProgressRepository.java
++++ b/japan-kanji-backend/src/main/java/com/duy/japankanji/repository/ReviewProgressRepository.java
+@@ -37,4 +37,7 @@ public interface ReviewProgressRepository extends JpaRepository<ReviewProgress,
+ 
+     @Query("SELECT COUNT(r) FROM ReviewProgress r WHERE r.user.id = :userId AND r.intervalDays <= 21 AND r.repetitions > 0")
+     long countLearningByUserId(@Param("userId") Long userId);
++
++    @Query("SELECT COUNT(r) FROM ReviewProgress r WHERE r.user.id = :userId AND r.vocabulary.jlptLevel = :jlptLevel AND r.repetitions > 0")
++    long countLearnedByUserIdAndJlptLevel(@Param("userId") Long userId, @Param("jlptLevel") String jlptLevel);
+ }
+\ No newline at end of file
+diff --git a/japan-kanji-backend/src/main/java/com/duy/japankanji/repository/UserBadgeRepository.java b/japan-kanji-backend/src/main/java/com/duy/japankanji/repository/UserBadgeRepository.java
+new file mode 100644
+index 0000000..b3174a2
+--- /dev/null
++++ b/japan-kanji-backend/src/main/java/com/duy/japankanji/repository/UserBadgeRepository.java
+@@ -0,0 +1,14 @@
++package com.duy.japankanji.repository;
++
++import com.duy.japankanji.entity.UserBadge;
++import com.duy.japankanji.entity.enums.BadgeType;
++import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.stereotype.Repository;
++
++import java.util.List;
++
++@Repository
++public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {
++    List<UserBadge> findByUserId(Long userId);
++    boolean existsByUserIdAndBadgeType(Long userId, BadgeType badgeType);
++}
+diff --git a/japan-kanji-backend/src/main/java/com/duy/japankanji/repository/VocabularyRepository.java b/japan-kanji-backend/src/main/java/com/duy/japankanji/repository/VocabularyRepository.java
+index 04f8653..744ee54 100644
+--- a/japan-kanji-backend/src/main/java/com/duy/japankanji/repository/VocabularyRepository.java
++++ b/japan-kanji-backend/src/main/java/com/duy/japankanji/repository/VocabularyRepository.java
+@@ -13,6 +13,8 @@ import java.util.List;
+ public interface VocabularyRepository extends JpaRepository<Vocabulary, Long> {
+     List<Vocabulary> findByJlptLevel(String jlptLevel);
+     
++    long countByJlptLevel(String jlptLevel);
++    
+     Page<Vocabulary> findByKanjiContainingIgnoreCaseOrHanVietContainingIgnoreCase(String kanji, String hanViet, Pageable pageable);
+ 
+     @Query("SELECT v FROM Deck d JOIN d.vocabularies v WHERE d.id = :deckId")
+diff --git a/japan-kanji-backend/src/main/java/com/duy/japankanji/service/BadgeService.java b/japan-kanji-backend/src/main/java/com/duy/japankanji/service/BadgeService.java
+new file mode 100644
+index 0000000..32e2abd
+--- /dev/null
++++ b/japan-kanji-backend/src/main/java/com/duy/japankanji/service/BadgeService.java
+@@ -0,0 +1,36 @@
++package com.duy.japankanji.service;
++
++import com.duy.japankanji.dto.BadgeResponse;
++import com.duy.japankanji.entity.UserBadge;
++import com.duy.japankanji.repository.UserBadgeRepository;
++import com.duy.japankanji.repository.UserRepository;
++import lombok.RequiredArgsConstructor;
++import org.springframework.stereotype.Service;
++
++import java.util.List;
++
++@Service
++@RequiredArgsConstructor
++public class BadgeService {
++
++    private final UserBadgeRepository userBadgeRepository;
++    private final UserRepository userRepository;
++
++    public List<BadgeResponse> getUserBadges(String username) {
++        Long userId = userRepository.findByUsername(username).orElseThrow().getId();
++        return userBadgeRepository.findByUserId(userId).stream()
++                .map(this::toResponse)
++                .toList();
++    }
++
++    private BadgeResponse toResponse(UserBadge userBadge) {
++        return new BadgeResponse(
++                userBadge.getBadgeType().name(),
++                userBadge.getBadgeType().getTitle(),
++                userBadge.getBadgeType().getDescription(),
++                userBadge.getBadgeType().getJlptLevel(),
++                userBadge.getBadgeType().getRequiredPercentage(),
++                userBadge.getUnlockedAt()
++        );
++    }
++}
+diff --git a/japan-kanji-backend/src/main/java/com/duy/japankanji/service/StudyService.java b/japan-kanji-backend/src/main/java/com/duy/japankanji/service/StudyService.java
+index 69a0b3d..2473b46 100644
+--- a/japan-kanji-backend/src/main/java/com/duy/japankanji/service/StudyService.java
++++ b/japan-kanji-backend/src/main/java/com/duy/japankanji/service/StudyService.java
+@@ -8,7 +8,9 @@ import com.duy.japankanji.entity.Vocabulary;
+ import com.duy.japankanji.repository.ReviewProgressRepository;
+ import com.duy.japankanji.repository.UserRepository;
+ import com.duy.japankanji.repository.VocabularyRepository;
++import com.duy.japankanji.event.VocabularyLearnedEvent;
+ import lombok.RequiredArgsConstructor;
++import org.springframework.context.ApplicationEventPublisher;
+ import org.springframework.data.domain.PageRequest;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
+@@ -24,6 +26,7 @@ public class StudyService {
+     private final UserRepository userRepository;
+     private final VocabularyRepository vocabularyRepository;
+     private final Sm2Service sm2Service;
++    private final ApplicationEventPublisher eventPublisher;
+ 
+     public List<VocabularyResponse> getLessons(Long deckId, String username, int limit) {
+         User user = userRepository.findByUsername(username).orElseThrow();
+@@ -77,6 +80,8 @@ public class StudyService {
+         sm2Service.updateProgress(progress, quality);
+ 
+         reviewProgressRepository.save(progress);
++        
++        eventPublisher.publishEvent(new VocabularyLearnedEvent(this, user.getId(), vocabulary.getJlptLevel()));
+     }
+ 
+     private VocabularyResponse toResponse(Vocabulary vocabulary) {
+diff --git a/japan-kanji-frontend/src/components/ui/BadgeShowcase.tsx b/japan-kanji-frontend/src/components/ui/BadgeShowcase.tsx
+new file mode 100644
+index 0000000..4cdfa69
+--- /dev/null
++++ b/japan-kanji-frontend/src/components/ui/BadgeShowcase.tsx
+@@ -0,0 +1,104 @@
++import { useEffect, useState } from 'react';
++import { motion } from 'framer-motion';
++import { Medal, Star, Trophy, Award, Shield } from 'lucide-react';
++import type { BadgeResponse } from '../../types/badge.types';
++import { badgeService } from '../../services/badge.service';
++
++const BadgeIcon = ({ level, percentage }: { level: string, percentage: number }) => {
++    let Icon = Medal;
++    let colorClass = "text-gray-400 border-gray-400/20"; // default
++
++    if (percentage === 10) {
++        Icon = Star;
++        colorClass = "text-amber-600 border-amber-600/20"; // Bronze
++    } else if (percentage === 50) {
++        Icon = Award;
++        colorClass = "text-slate-300 border-slate-300/20"; // Silver
++    } else if (percentage === 100) {
++        Icon = Trophy;
++        colorClass = "text-yellow-400 border-yellow-400/20"; // Gold
++    }
++
++    if (level === 'N1' && percentage === 100) {
++        Icon = Shield;
++        colorClass = "text-fuchsia-500 border-fuchsia-500/20 shadow-fuchsia-500/20";
++    }
++
++    return (
++        <div className={`p-4 rounded-full bg-surface-1 dark:bg-surface-3 border-2 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] ${colorClass}`}>
++            <Icon size={36} className="drop-shadow-[0_0_12px_rgba(currentcolor,0.4)]" />
++        </div>
++    );
++};
++
++export const BadgeShowcase = () => {
++    const [badges, setBadges] = useState<BadgeResponse[]>([]);
++    const [loading, setLoading] = useState(true);
++
++    useEffect(() => {
++        const fetchBadges = async () => {
++            try {
++                const data = await badgeService.getMyBadges();
++                setBadges(data);
++            } catch (error) {
++                console.error("Failed to fetch badges", error);
++            } finally {
++                setLoading(false);
++            }
++        };
++        fetchBadges();
++    }, []);
++
++    if (loading) return null;
++
++    if (badges.length === 0) {
++        return (
++            <div className="p-8 rounded-2xl bg-paper-1 dark:bg-surface-1 border border-border flex flex-col items-center justify-center text-center gap-3">
++                <div className="p-4 rounded-full bg-surface-2 dark:bg-surface-2 border border-border">
++                    <Trophy className="text-gray-400 opacity-40" size={40} />
++                </div>
++                <div>
++                    <h3 className="text-lg font-semibold text-content-1">Huy hiß╗çu & Th├ánh tß╗▒u</h3>
++                    <p className="text-sm text-content-2 mt-1">Ch╞░a c├│ huy hiß╗çu n├áo. H├úy hß╗ìc th├¬m Kanji ─æß╗â s╞░u tß║ºm nh├⌐!</p>
++                </div>
++            </div>
++        );
++    }
++
++    return (
++        <div className="p-6 md:p-8 rounded-2xl bg-paper-1 dark:bg-surface-1 border border-border flex flex-col gap-6 shadow-sm">
++            <div className="flex items-center justify-between">
++                <div className="flex items-center gap-3">
++                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
++                        <Award size={24} />
++                    </div>
++                    <div>
++                        <h3 className="text-xl font-bold text-content-1">Bß╗Ö s╞░u tß║¡p Huy hiß╗çu</h3>
++                        <p className="text-sm text-content-2">Bß║ín ─æ├ú mß╗ƒ kh├│a {badges.length} huy hiß╗çu</p>
++                    </div>
++                </div>
++            </div>
++            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
++                {badges.map((badge, idx) => (
++                    <motion.div
++                        key={badge.badgeType}
++                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
++                        animate={{ opacity: 1, scale: 1, y: 0 }}
++                        transition={{ delay: idx * 0.1, type: "spring", stiffness: 200, damping: 15 }}
++                        whileHover={{ scale: 1.05, y: -5 }}
++                        className="group relative flex flex-col items-center text-center p-5 rounded-2xl bg-paper-2 dark:bg-surface-2 border border-border overflow-hidden cursor-default shadow-sm hover:shadow-md transition-all duration-300"
++                    >
++                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
++                        
++                        <BadgeIcon level={badge.jlptLevel} percentage={badge.requiredPercentage} />
++                        
++                        <div className="mt-4 z-10">
++                            <h4 className="font-bold text-sm text-content-1 group-hover:text-primary transition-colors">{badge.title}</h4>
++                            <p className="text-[11px] text-content-2 mt-1 leading-tight">{badge.description}</p>
++                        </div>
++                    </motion.div>
++                ))}
++            </div>
++        </div>
++    );
++};
+diff --git a/japan-kanji-frontend/src/components/ui/DeckCard.tsx b/japan-kanji-frontend/src/components/ui/DeckCard.tsx
+index fd0d9b6..63d7628 100644
+--- a/japan-kanji-frontend/src/components/ui/DeckCard.tsx
++++ b/japan-kanji-frontend/src/components/ui/DeckCard.tsx
+@@ -1,3 +1,7 @@
++/* Hallmark ┬╖ component: DeckCard ┬╖ genre: modern-minimal ┬╖ theme: catalog
++ * states: default ┬╖ hover ┬╖ focus-visible ┬╖ active
++ * contrast: pass
++ */
+ import { BookOpen, Folder, Layers, MoreVertical, ChevronRight } from "lucide-react";
+ import type { DeckResponse } from "../../services/deck.service";
+ import { useState, useRef, useEffect } from "react";
+@@ -24,51 +28,59 @@ export default function DeckCard({ deck, type, actions, onStudy }: DeckCardVaria
+   }, []);
+ 
+   return (
+-    <div className="group relative bg-white border border-neutral-200 rounded-3xl p-6 hover:shadow-2xl transition-all duration-300 overflow-visible flex flex-col h-full transform hover:-translate-y-1">
+-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-3xl"></div>
+-      
+-      <div className="flex items-start justify-between mb-6">
+-        <div className={`p-4 rounded-2xl ${type === 'official' ? 'bg-red-50 text-red-600' : type === 'custom' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'} transition-transform group-hover:scale-110`}>
+-          {type === 'official' ? <BookOpen size={28} /> : <Folder size={28} />}
++    <div 
++      className="group relative bg-[var(--color-paper-1)] border border-[oklch(0.90_0.01_250)] p-4 sm:p-5 hover:shadow-md transition-all duration-300 flex items-center justify-between gap-4 focus-within:ring-2 focus-within:ring-[var(--color-accent-1)] focus-within:ring-offset-2"
++    >
++      {/* Left side: Icon + Text */}
++      <div className="flex items-center gap-4 flex-1 min-w-0">
++        <div className={`p-3 ${type === 'official' ? 'bg-[oklch(0.95_0.10_25)] text-[var(--color-accent-1)]' : type === 'custom' ? 'bg-[var(--color-paper-3)] text-[var(--color-ink-1)]' : 'bg-[oklch(0.95_0.05_250)] text-[var(--color-ink-1)]'} transition-transform group-hover:scale-105 shrink-0`}>
++          {type === 'official' ? <BookOpen size={24} /> : <Folder size={24} />}
+         </div>
+         
+-        <div className="flex items-center gap-3">
+-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 rounded-full text-sm font-bold text-neutral-600 shadow-sm border border-neutral-200/50">
+-            <Layers size={16} />
+-            <span>{deck.vocabularyCount}</span>
+-          </div>
++        <div className="flex-1 min-w-0">
++           <h3 className="text-base font-bold text-[var(--color-ink-1)] group-hover:text-[var(--color-accent-1)] transition-colors truncate">
++             {deck.title}
++           </h3>
++           <div className="flex items-center gap-1.5 text-xs text-[var(--color-ink-2)] mt-1 truncate">
++             <Layers size={14} className="shrink-0" />
++             <span className="font-medium shrink-0">{deck.vocabularyCount} tß╗½</span>
++             <span className="opacity-40 mx-1 shrink-0">ΓÇó</span>
++             <span className="truncate">{deck.description || "Ch╞░a c├│ m├┤ tß║ú"}</span>
++           </div>
++        </div>
++      </div>
+ 
+-          {actions && (
+-            <div className="relative" ref={menuRef}>
+-              <button 
+-                onClick={(e) => { e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
+-                className="p-2 hover:bg-neutral-100 rounded-full text-neutral-500 transition-colors"
+-              >
+-                <MoreVertical size={20} />
+-              </button>
+-              
+-              {isMenuOpen && (
+-                <div className="absolute right-0 top-full mt-2 w-48 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-neutral-200/50 overflow-hidden z-20 animate-in fade-in zoom-in duration-200">
+-                  <div className="flex flex-col p-1" onClick={() => setIsMenuOpen(false)}>
+-                    {actions}
+-                  </div>
++      {/* Right side: Button + Actions */}
++      <div className="flex items-center gap-2 shrink-0">
++        <button 
++          onClick={(e) => { e.stopPropagation(); onStudy?.(); }}
++          className="bg-[var(--color-paper-2)] border border-[oklch(0.90_0.01_250)] text-[var(--color-ink-1)] font-bold px-4 py-2 transition-all duration-200 flex items-center justify-center group/btn shadow-sm hover:shadow-md hover:bg-[var(--color-accent-1)] hover:text-[var(--color-paper-1)] hover:border-[var(--color-accent-1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent-1)] active:scale-[0.98] cursor-pointer text-sm"
++        >
++          Hß╗ìc
++          <ChevronRight size={16} className="ml-1 transform group-hover/btn:translate-x-0.5 transition-transform" />
++        </button>
++
++        {actions && (
++          <div className="relative flex items-center" ref={menuRef}>
++            <button 
++              onClick={(e) => { e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
++              className="p-2 text-[var(--color-ink-2)] transition-colors hover:bg-[var(--color-paper-2)] hover:text-[var(--color-ink-1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink-2)] active:scale-95 cursor-pointer"
++              aria-label="Menu tuß╗│ chß╗ìn"
++              aria-expanded={isMenuOpen}
++            >
++              <MoreVertical size={20} />
++            </button>
++            
++            {isMenuOpen && (
++              <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--color-paper-1)]/95 backdrop-blur-xl shadow-xl border border-[oklch(0.90_0.01_250)] z-20 animate-in fade-in zoom-in duration-200">
++                <div className="flex flex-col p-1" onClick={() => setIsMenuOpen(false)}>
++                  {actions}
+                 </div>
+-              )}
+-            </div>
+-          )}
+-        </div>
++              </div>
++            )}
++          </div>
++        )}
+       </div>
+-      
+-      <h3 className="text-2xl font-bold text-neutral-900 mb-2 group-hover:text-red-600 transition-colors line-clamp-2 leading-tight">{deck.title}</h3>
+-      <p className="text-neutral-500 text-sm line-clamp-2 mb-6">{deck.description || "Ch╞░a c├│ m├┤ tß║ú"}</p>
+-      
+-      <button 
+-        onClick={(e) => { e.stopPropagation(); onStudy?.(); }}
+-        className="mt-auto w-full bg-red-50 hover:bg-red-500 hover:text-white text-red-600 font-bold py-4 rounded-2xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm hover:shadow-md"
+-      >
+-        Bß║»t ─Éß║ºu Hß╗ìc 
+-        <ChevronRight size={20} className="ml-2 transform group-hover/btn:translate-x-1 transition-transform" />
+-      </button>
+     </div>
+   );
+ }
+diff --git a/japan-kanji-frontend/src/pages/Dashboard.tsx b/japan-kanji-frontend/src/pages/Dashboard.tsx
+index 67778c1..d5b88c9 100644
+--- a/japan-kanji-frontend/src/pages/Dashboard.tsx
++++ b/japan-kanji-frontend/src/pages/Dashboard.tsx
+@@ -19,6 +19,7 @@ import {
+ import { useNavigate } from "react-router-dom";
+ import DeckCard from "../components/ui/DeckCard";
+ import Sidebar from "../components/ui/Sidebar";
++import { BadgeShowcase } from "../components/ui/BadgeShowcase";
+ 
+ export default function Dashboard() {
+   const { user } = useAuth();
+@@ -156,6 +157,8 @@ export default function Dashboard() {
+     deck: DeckResponse,
+     type: "official" | "custom" | "saved"
+   ) => {
++    if (type === "official") return null;
++
+     return (
+       <>
+         {type === "custom" && (
+@@ -249,10 +252,18 @@ export default function Dashboard() {
+               </div>
+             </header>
+ 
++            {/* Badges Showcase */}
++            <BadgeShowcase />
++
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+               {/* Left Column: Stats & Due Reviews (Workbench Focus) */}
+               <div className="lg:col-span-1 flex flex-col gap-8">
+-                {/* Due Reviews Card */}
++                <section>
++                  <h2 className="text-lg font-bold text-[var(--color-ink-1)] tracking-tight mb-4 hairline-b pb-2">
++                    Tiß║┐n ─Éß╗Ö & ├ön Tß║¡p
++                  </h2>
++                  <div className="flex flex-col gap-8">
++                    {/* Due Reviews Card */}
+                 {dueReviewsCount > 0 ? (
+                   <div className="bg-[var(--color-accent-1)] p-6 text-[var(--color-ink-inverse-1)] flex flex-col gap-4">
+                     <div>
+@@ -353,6 +364,8 @@ export default function Dashboard() {
+                   </section>
+                 )}
+               </div>
++            </section>
++          </div>
+ 
+               {/* Right Column: Decks */}
+               <div className="lg:col-span-2 space-y-12">
+diff --git a/japan-kanji-frontend/src/pages/LessonSession.tsx b/japan-kanji-frontend/src/pages/LessonSession.tsx
+index a2647c0..dd96f3a 100644
+--- a/japan-kanji-frontend/src/pages/LessonSession.tsx
++++ b/japan-kanji-frontend/src/pages/LessonSession.tsx
+@@ -200,8 +200,10 @@ export default function LessonSession() {
+         <motion.div
+           layout
+           onClick={(e) => e.stopPropagation()}
+-          className="w-full max-w-[400px] bg-[var(--color-paper-1)] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-[oklch(0.90_0.01_250)] cursor-default"
++          className="w-full max-w-[400px] min-h-[500px] bg-[var(--color-paper-1)] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-[oklch(0.90_0.01_250)] cursor-default"
+         >
++          {/* Top Wrapper for Kanji and Details */}
++          <div className="flex-1 flex flex-col justify-center">
+           {/* Top: Kanji Display */}
+           <motion.div
+             layout
+@@ -269,9 +271,10 @@ export default function LessonSession() {
+               </motion.div>
+             )}
+           </AnimatePresence>
++          </div>
+ 
+           {/* Bottom: Controls */}
+-          <div className="p-6 bg-[oklch(0.97_0.01_250)] border-t border-[oklch(0.90_0.01_250)]">
++          <div className="p-6 bg-[oklch(0.97_0.01_250)] border-t border-[oklch(0.90_0.01_250)] mt-auto">
+             <AnimatePresence mode="wait">
+               {!isAnswerRevealed ? (
+                 <motion.div
+diff --git a/japan-kanji-frontend/src/pages/ReviewSession.tsx b/japan-kanji-frontend/src/pages/ReviewSession.tsx
+index 2525acb..237c146 100644
+--- a/japan-kanji-frontend/src/pages/ReviewSession.tsx
++++ b/japan-kanji-frontend/src/pages/ReviewSession.tsx
+@@ -185,8 +185,10 @@ export default function ReviewSession() {
+         <motion.div
+           layout
+           onClick={(e) => e.stopPropagation()}
+-          className="w-full max-w-[440px] bg-[var(--color-paper-1)] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-[oklch(0.90_0.01_250)] cursor-default"
++          className="w-full max-w-[440px] min-h-[560px] bg-[var(--color-paper-1)] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-[oklch(0.90_0.01_250)] cursor-default"
+         >
++          {/* Top Wrapper for Kanji and Details */}
++          <div className="flex-1 flex flex-col justify-center">
+           {/* Top: Kanji Display */}
+           <motion.div
+             layout
+@@ -282,9 +284,10 @@ export default function ReviewSession() {
+               </motion.div>
+             )}
+           </AnimatePresence>
++          </div>
+ 
+           {/* Bottom: Controls */}
+-          <div className="p-6 bg-[oklch(0.97_0.01_250)] border-t border-[oklch(0.90_0.01_250)]">
++          <div className="p-6 bg-[oklch(0.97_0.01_250)] border-t border-[oklch(0.90_0.01_250)] mt-auto">
+             <AnimatePresence mode="wait">
+               {!isAnswerRevealed ? (
+                 <motion.div
+diff --git a/japan-kanji-frontend/src/services/badge.service.ts b/japan-kanji-frontend/src/services/badge.service.ts
+new file mode 100644
+index 0000000..cd5ba88
+--- /dev/null
++++ b/japan-kanji-frontend/src/services/badge.service.ts
+@@ -0,0 +1,9 @@
++import api from './api';
++import type { BadgeResponse } from '../types/badge.types';
++
++export const badgeService = {
++    getMyBadges: async (): Promise<BadgeResponse[]> => {
++        const response = await api.get('/api/badges/me');
++        return response.data;
++    }
++};
+diff --git a/japan-kanji-frontend/src/types/badge.types.ts b/japan-kanji-frontend/src/types/badge.types.ts
+new file mode 100644
+index 0000000..66faba1
+--- /dev/null
++++ b/japan-kanji-frontend/src/types/badge.types.ts
+@@ -0,0 +1,8 @@
++export interface BadgeResponse {
++    badgeType: string;
++    title: string;
++    description: string;
++    jlptLevel: string;
++    requiredPercentage: number;
++    unlockedAt: string;
++}
