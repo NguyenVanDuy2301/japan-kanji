@@ -39,5 +39,12 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
   - **Backend**: Cấu hình `BadgeEventListener` để lắng nghe sự kiện người dùng học xong từ vựng mới (`VocabularyLearnedEvent`). Tính toán phần trăm tiến độ và cấp phát Huy hiệu (Starter, Halfway, Master) cho từng cấp độ JLPT từ N5-N1.
   - **Frontend**: Xây dựng component `BadgeShowcase.tsx` ngay trên đầu Dashboard với giao diện bắt mắt, có hiệu ứng chuyển động, đánh bóng kim loại cho từng loại huy hiệu. Tinh chỉnh Layout Dashboard thành cấu trúc ngang thẳng hàng hoàn hảo.
 
+- **Hiệu ứng vẽ Kanji (Stroke Animation)**:
+  - Tích hợp tính năng tự động vẽ nét chữ Hán trên lưới chữ thập khi tra từ điển.
+  - Sử dụng chiến lược *Zero Storage*: tự động dịch mã Unicode và tải động file SVG từ CDN KanjiVG, không làm phình dung lượng app. Cấu hình CSS Animation mượt mà và hỗ trợ xem lại (Replay).
+
+- **Sửa lỗi định tuyến (Routing Fix)**:
+  - Bổ sung `GuestRoute` bên Frontend để bảo vệ trang Login/Signup, điều hướng tự động người dùng đã đăng nhập về Dashboard.
+
 ### Còn thiếu (Pending / Missing)
 - Bảng xếp hạng (Leaderboard) cho Giai đoạn 5.

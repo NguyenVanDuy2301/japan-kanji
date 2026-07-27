@@ -38,3 +38,36 @@ body {
 .hairline-r {
   border-right: 1px solid oklch(0.9 0.01 250);
 }
+
+/* Kanji Stroke Animation */
+.kanji-svg-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+.kanji-svg-container path {
+  fill: none;
+  stroke: #1e293b; /* slate-800 */
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  /* Tạo hiệu ứng vẽ bằng cách set dasharray lớn và di chuyển offset */
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+
+  /* Mỗi nét vẽ kéo dài 1.5s, animation-delay = số nét * 0.8s */
+  animation: draw-kanji 1.5s ease-out forwards;
+  animation-delay: calc(var(--stroke-index, 0) * 0.8s);
+}
+
+/* Ẩn các con số đếm thứ tự nét lộn xộn trong SVG gốc */
+.kanji-svg-container text {
+  display: none;
+}
+
+@keyframes draw-kanji {
+  to {
+    stroke-dashoffset: 0;
+  }
+}

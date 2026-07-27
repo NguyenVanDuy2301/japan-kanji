@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Search, X } from "lucide-react";
 import Sidebar from "../components/ui/Sidebar";
+import { KanjiStrokeDraw } from "../components/kanji/KanjiStrokeDraw";
 import {
   kanjiService,
   type KanjiResponse,
@@ -198,8 +199,8 @@ export default function KanjiDictionary() {
                 <div className="space-y-12">
                   {/* Top Section */}
                   <div className="flex flex-col md:flex-row gap-10 items-start">
-                    <div className="flex-shrink-0 w-40 h-40 bg-[var(--color-paper-2)] border border-[var(--color-ink-2)] flex items-center justify-center text-[100px] font-serif font-bold text-[var(--color-ink-1)] shadow-inner">
-                      {selectedKanji.character}
+                    <div className="flex-shrink-0">
+                      <KanjiStrokeDraw kanji={selectedKanji.character} />
                     </div>
                     <div className="flex-1 space-y-6 w-full">
                       <div>
