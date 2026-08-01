@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Edit3 } from "lucide-react";
 import Sidebar from "../components/ui/Sidebar";
 import { KanjiStrokeDraw } from "../components/kanji/KanjiStrokeDraw";
+import { HandwritingPad } from "../components/kanji/HandwritingPad";
 import {
   kanjiService,
   type KanjiResponse,
@@ -17,6 +18,7 @@ export default function KanjiDictionary() {
   const [selectedKanji, setSelectedKanji] =
     useState<KanjiDetailsResponse | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [showHandwritingPad, setShowHandwritingPad] = useState(false);
 
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
@@ -89,11 +91,36 @@ export default function KanjiDictionary() {
               </div>
               <input
                 type="text"
-                className="block w-full pl-14 pr-6 py-5 rounded-none bg-[var(--color-paper-1)] border border-[var(--color-ink-2)] focus:border-[var(--color-ink-1)] focus:ring-0 text-lg shadow-sm transition-all focus:shadow-md text-[var(--color-ink-1)] placeholder:text-[var(--color-ink-3)]"
+                className="block w-full pl-14 pr-16 py-5 rounded-none bg-[var(--color-paper-1)] border border-[var(--color-ink-2)] focus:border-[var(--color-ink-1)] focus:ring-0 text-lg shadow-sm transition-all focus:shadow-md text-[var(--color-ink-1)] placeholder:text-[var(--color-ink-3)]"
                 placeholder="Nhập chữ Hán, Romaji, hoặc Nghĩa Hán Việt..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                <button
+                  onClick={() => setShowHandwritingPad(!showHandwritingPad)}
+                  className={`p-2 rounded-full transition-colors ${
+                    showHandwritingPad
+                      ? "bg-indigo-100 text-indigo-600"
+                      : "text-[var(--color-ink-3)] hover:text-[var(--color-ink-1)] hover:bg-neutral-100"
+                  }`}
+                  title="Tra bằng nét vẽ"
+                >
+                  <Edit3 size={20} />
+                </button>
+              </div>
+
+              {/* Popover Bảng vẽ */}
+              {showHandwritingPad && (
+                <div className="absolute left-0 right-0 top-full mt-2 z-40 animate-in fade-in slide-in-from-top-2">
+                  <HandwritingPad
+                    onSelect={(kanji) => {
+                      setQuery((prev) => prev + kanji);
+                    }}
+                    onClose={() => setShowHandwritingPad(false)}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
