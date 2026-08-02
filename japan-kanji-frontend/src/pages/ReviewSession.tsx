@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, X } from "lucide-react";
 import { studyService } from "../services/study.service";
 import type { VocabularyResponse } from "../types/vocabulary.types";
 import { motion, AnimatePresence } from "framer-motion";
+import { Skeleton } from "../components/ui/Skeleton";
 import clsx from "clsx";
 
 export default function ReviewSession() {
@@ -114,8 +115,14 @@ export default function ReviewSession() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[var(--color-surface-1)] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[var(--color-ink-inverse-2)] border-t-[var(--color-accent-1)] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col items-center justify-center p-4">
+        <div className="max-w-2xl w-full flex-1 flex flex-col min-h-[600px] bg-white rounded-3xl shadow-xl p-8 lg:p-12 border border-neutral-200">
+          <Skeleton className="h-6 w-32 mb-8 mx-auto" />
+          <div className="flex-1 flex items-center justify-center">
+            <Skeleton className="h-32 w-32 md:h-48 md:w-48 rounded-2xl" />
+          </div>
+          <Skeleton className="h-16 w-full rounded-xl mt-8" />
+        </div>
       </div>
     );
   }

@@ -9,6 +9,10 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
 - **Backend API Học & Ôn tập**: Cấu hình thuật toán Spaced Repetition (SM-2) trong `StudyService.java`. Xây dựng các API trả về từ mới (`/lessons`), từ ôn tập (`/reviews`), chế độ luyện tập (`/practice`), và chấm điểm (`/submit-review`).
 - **Giao diện Học từ mới (Lesson Session)**: Xây dựng màn hình lật thẻ (Flip Card) 3D mượt mà. Đơn giản hóa UX bằng cách gộp thành một nút "Vào Học" duy nhất trên trang chủ: Hệ thống sẽ tự động bắt đầu bài học mới nếu có từ chưa thuộc, hoặc tự động chuyển sang "Chế độ Luyện Tập" nếu người dùng đã học hết từ mới, giúp trải nghiệm liền mạch không bị gián đoạn.
 - **Giao diện Ôn tập (Review Session)**: Hoàn thiện chế độ **Hybrid (Flashcard + Gõ phím)** kết hợp thuật toán SM-2. Hỗ trợ luật "Quá tam ba bận" (sai 3 lần tự lật đáp án) kèm hiệu ứng rung lắc (shake) và tự động focus. Tích hợp điểm chất lượng (Quality 0-5) truyền thẳng xuống Backend để tính toán lịch ôn tập.
+- **Trải nghiệm người dùng (UI/UX - Hiệu năng)**:
+  - Cập nhật đồng bộ các màn hình chính (Dashboard, Kanji Dictionary, Deck Manager, Lessons, Reviews) sang hiệu ứng **Skeleton Loading**, giảm thiểu tình trạng Layout Shift (giật cục) lúc tải dữ liệu.
+  - Tối ưu hóa cách hiển thị phiên âm Kanji (lọc bỏ các ký tự thừa, tinh giản giao diện tag).
+  - Ra mắt tính năng **Bảng Vẽ Cảm Ứng (Handwriting Pad)** tích hợp API Google Input Tools, hỗ trợ tra cứu chữ Hán theo nét vẽ với cấu trúc code chuẩn chỉnh (tách biệt Data Fetching ra khỏi UI Component thông qua `handwriting.service.ts`).
 - **Việt hóa (Localization)**: Dịch 100% tiếng Anh sang tiếng Việt tại các trang Login, Signup, Dashboard, LessonSession, ReviewSession.
 - **Khu vực Ôn tập trên Dashboard**: Thêm banner báo số lượng từ "Đã đến hạn ôn tập hôm nay" ngay trên cùng trang chủ, kèm nút "Bắt Đầu Ôn Tập" để vào thẳng tính năng Review.
 - **Tạo và Quản lý Bộ bài Cá nhân (Phase 3)**:
@@ -27,7 +31,7 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
 
 - **Tính năng tra cứu (Kanji Dictionary)**:
   - **Backend**: Tạo mới Entity `Kanji` độc lập với `Vocabulary`. Xây dựng tính năng tìm kiếm (Unified Search) theo chữ Hán, Romaji và Âm Hán Việt. Lấy danh sách ví dụ từ vựng động bằng `LIKE`. Viết thêm Seeder sinh tự động 10 chữ Kanji mẫu.
-  - **Frontend**: Tạo trang `/kanji` riêng biệt. Xây dựng giao diện tìm kiếm dạng lưới (Grid) và hiển thị chi tiết (Modal) với đầy đủ thông tin: Bộ thủ, số nét, âm On, âm Kun và danh sách các từ vựng ví dụ có chứa chữ Hán đó. Tách component `Navbar` dùng chung.
+  - **Frontend**: Tạo trang `/kanji` riêng biệt. Xây dựng giao diện tìm kiếm dạng lưới (Grid) và hiển thị chi tiết (Modal) với đầy đủ thông tin. Áp dụng cơ chế **Cuộn vô hạn (Infinite Scroll)** kết hợp **Ảo hóa (Virtualization)** qua `react-virtuoso` thay vì phân trang cũ, mang lại trải nghiệm tra cứu mượt mà tuyệt đối khi lướt xem danh sách lớn. Tách component `Navbar` dùng chung.
 
 - **Quản trị Hán tự (Admin Kanji Manager)**:
   - Bổ sung màn hình Quản lý Hán tự riêng dành cho Admin (truy cập qua Navbar khi đăng nhập tài khoản có role ADMIN).
@@ -45,6 +49,10 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
 
 - **Sửa lỗi định tuyến (Routing Fix)**:
   - Bổ sung `GuestRoute` bên Frontend để bảo vệ trang Login/Signup, điều hướng tự động người dùng đã đăng nhập về Dashboard.
+
+- **Sửa lỗi dữ liệu tạo mẫu (Data Seeder Fix)**:
+  - Khắc phục lỗi `DataSeeder` nhồi dữ liệu chứa nhiều cách đọc ngăn cách bằng dấu phẩy (vd: `かね, かな-, -がね`) vào cột `kunyomi` và `onyomi`. 
+  - Bổ sung logic tự động trích xuất và ưu tiên cách đọc hợp lệ đầu tiên (loại bỏ các cách đọc chứa dấu gạch ngang), giúp màn hình Flashcard Frontend xác thực câu trả lời chính xác và thân thiện hơn.
 
 ### Còn thiếu (Pending / Missing)
 - Bảng xếp hạng (Leaderboard) cho Giai đoạn 5.

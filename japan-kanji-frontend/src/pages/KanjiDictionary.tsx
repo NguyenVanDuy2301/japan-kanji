@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, forwardRef } from "react";
+import { VirtuosoGrid } from "react-virtuoso";
 import { Search, X, Edit3 } from "lucide-react";
 import Sidebar from "../components/ui/Sidebar";
 import { KanjiStrokeDraw } from "../components/kanji/KanjiStrokeDraw";
 import { HandwritingPad } from "../components/kanji/HandwritingPad";
+import { KanjiCardSkeleton } from "../components/ui/KanjiCardSkeleton";
 import {
   kanjiService,
   type KanjiResponse,
@@ -10,10 +12,33 @@ import {
 } from "../services/kanji.service";
 
 export default function KanjiDictionary() {
+  const formatReading = (reading: string | null) => {
+    if (!reading) return [];
+    return reading
+      .split(",")
+      .map((r) => {
+        let cleaned = r.trim().replace(/\./g, "-");
+        cleaned = cleaned.replace(/^-|-$/g, "");
+        return cleaned;
+      })
+      .filter(Boolean);
+  };
+
+  const getCombinedReadings = (
+    kunyomi: string | null,
+    onyomi: string | null
+  ) => {
+    const k = formatReading(kunyomi);
+    const o = formatReading(onyomi);
+    const combined = [...k, ...o];
+    return combined.length > 0 ? combined.join(", ") : "—";
+  };
+
   const [query, setQuery] = useState("");
   const [kanjis, setKanjis] = useState<KanjiResponse[]>([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedKanji, setSelectedKanji] =
     useState<KanjiDetailsResponse | null>(null);
@@ -31,6 +56,7 @@ export default function KanjiDictionary() {
 
   useEffect(() => {
     setPage(0);
+    setKanjis([]);
   }, [debouncedQuery]);
 
   useEffect(() => {
@@ -40,14 +66,20 @@ export default function KanjiDictionary() {
   const fetchKanjis = async (q: string, p: number) => {
     setIsLoading(true);
     try {
-      const results = await kanjiService.searchKanji(q, p, 15); // Changed to 15 to better fit grid
-      setKanjis(results.content);
-      setTotalPages(results.totalPages);
-
-      const container = document.getElementById("scroll-container");
-      if (container) {
-        container.scrollTo({ top: 0, behavior: "smooth" });
+      const results = await kanjiService.searchKanji(q, p, 15);
+      if (p === 0) {
+        setKanjis(results.content);
+      } else {
+        setKanjis((prev) => {
+          // Prevent duplicates by checking ids
+          const existingIds = new Set(prev.map((k) => k.id));
+          const newItems = results.content.filter(
+            (k) => !existingIds.has(k.id)
+          );
+          return [...prev, ...newItems];
+        });
       }
+      setTotalPages(results.totalPages);
     } catch (error) {
       console.error("Failed to search kanji:", error);
     } finally {
@@ -67,12 +99,32 @@ export default function KanjiDictionary() {
     }
   };
 
+  const loadMore = () => {
+    if (!isLoading && page < totalPages - 1) {
+      setPage((p) => p + 1);
+    }
+  };
+
+  const GridContainer = forwardRef<HTMLDivElement, any>((props, ref) => {
+    return (
+      <div
+        {...props}
+        ref={ref}
+        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"
+      >
+        {props.children}
+      </div>
+    );
+  });
+  GridContainer.displayName = "GridContainer";
+
   return (
     <div className="flex h-screen bg-[var(--color-paper-2)] overflow-hidden font-sans">
       <Sidebar />
 
       <main
         id="scroll-container"
+        ref={setScrollParent}
         className="flex-1 overflow-y-auto p-8 lg:p-12 relative"
       >
         <div className="max-w-6xl mx-auto space-y-12">
@@ -125,70 +177,67 @@ export default function KanjiDictionary() {
           </div>
 
           {isLoading && !kanjis.length ? (
-            <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-2 border-[var(--color-ink-3)] border-t-[var(--color-ink-1)] rounded-full animate-spin"></div>
+            <GridContainer>
+              {Array.from({ length: 15 }).map((_, i) => (
+                <KanjiCardSkeleton key={i} />
+              ))}
+            </GridContainer>
+          ) : kanjis.length === 0 && !isLoading ? (
+            <div className="col-span-full py-20 text-center flex flex-col items-center justify-center">
+              <Search size={48} className="text-[var(--color-ink-3)] mb-4" />
+              <p className="text-xl font-bold text-[var(--color-ink-1)]">
+                Không tìm thấy chữ Hán
+              </p>
+              <p className="text-[var(--color-ink-2)] mt-2">
+                Vui lòng thử lại với một từ khóa khác.
+              </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-              {kanjis.map((k) => (
-                <div
-                  key={k.id}
-                  onClick={() => handleSelectKanji(k.character)}
-                  className="bg-[var(--color-paper-1)] pt-6 flex flex-col items-center shadow-sm hover:shadow-lg border border-[var(--color-ink-2)] cursor-pointer transition-all hover:border-[var(--color-ink-1)] hover:-translate-y-1 text-center group overflow-hidden"
-                >
-                  <div className="text-5xl font-serif font-bold text-[var(--color-ink-1)] mb-4 group-hover:text-[var(--color-accent-1)] transition-colors px-6">
-                    {k.character}
+            scrollParent && (
+              <VirtuosoGrid
+                customScrollParent={scrollParent}
+                data={kanjis}
+                endReached={loadMore}
+                useWindowScroll={false}
+                overscan={200}
+                components={{
+                  List: GridContainer,
+                  Footer: () =>
+                    isLoading ? (
+                      <div className="mt-6">
+                        <GridContainer>
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <KanjiCardSkeleton key={i} />
+                          ))}
+                        </GridContainer>
+                      </div>
+                    ) : null,
+                }}
+                itemContent={(_, k) => (
+                  <div
+                    key={k.id}
+                    onClick={() => handleSelectKanji(k.character)}
+                    className="bg-[var(--color-paper-1)] pt-6 flex flex-col items-center shadow-sm hover:shadow-lg border border-[var(--color-ink-2)] cursor-pointer transition-all hover:border-[var(--color-ink-1)] hover:-translate-y-1 text-center group overflow-hidden h-full"
+                  >
+                    <div className="text-5xl font-serif font-bold text-[var(--color-ink-1)] mb-4 group-hover:text-[var(--color-accent-1)] transition-colors px-6 flex-1 flex items-center justify-center">
+                      {k.character}
+                    </div>
+                    <div className="text-lg font-bold text-[var(--color-ink-1)] px-6">
+                      {k.hanViet}
+                    </div>
+                    <div className="text-sm text-[var(--color-ink-2)] mt-1 line-clamp-1 px-6 pb-2">
+                      {k.meaning}
+                    </div>
+                    <div
+                      className="mt-auto px-6 py-2.5 w-full bg-[var(--color-paper-2)] border-t border-[var(--color-ink-2)] text-sm font-medium text-[var(--color-ink-1)] truncate text-center"
+                      title={getCombinedReadings(k.kunyomi, k.onyomi)}
+                    >
+                      {getCombinedReadings(k.kunyomi, k.onyomi)}
+                    </div>
                   </div>
-                  <div className="text-lg font-bold text-[var(--color-ink-1)] px-6">
-                    {k.hanViet}
-                  </div>
-                  <div className="text-sm text-[var(--color-ink-2)] mt-1 line-clamp-1 px-6">
-                    {k.meaning}
-                  </div>
-                  <div className="mt-4 px-6 py-2.5 w-full bg-[var(--color-paper-2)] border-t border-[var(--color-ink-2)] text-sm font-medium text-[var(--color-ink-1)] truncate text-center">
-                    {k.kunyomi || k.onyomi || "—"}
-                  </div>
-                </div>
-              ))}
-
-              {kanjis.length === 0 && !isLoading && (
-                <div className="col-span-full py-20 text-center flex flex-col items-center justify-center">
-                  <Search
-                    size={48}
-                    className="text-[var(--color-ink-3)] mb-4"
-                  />
-                  <p className="text-xl font-bold text-[var(--color-ink-1)]">
-                    Không tìm thấy chữ Hán
-                  </p>
-                  <p className="text-[var(--color-ink-2)] mt-2">
-                    Vui lòng thử lại với một từ khóa khác.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Pagination Controls */}
-          {!isLoading && totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 pt-12 pb-24 border-t border-[var(--color-ink-2)] mt-12">
-              <button
-                disabled={page === 0}
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                className="px-6 py-3 bg-[var(--color-paper-1)] border border-[var(--color-ink-2)] text-[var(--color-ink-1)] hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed font-bold text-sm transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-ink-1)]"
-              >
-                Trang trước
-              </button>
-              <span className="text-[var(--color-ink-2)] font-bold text-sm tracking-wider">
-                TRANG {page + 1} / {totalPages}
-              </span>
-              <button
-                disabled={page >= totalPages - 1}
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                className="px-6 py-3 bg-[var(--color-paper-1)] border border-[var(--color-ink-2)] text-[var(--color-ink-1)] hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed font-bold text-sm transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-ink-1)]"
-              >
-                Trang sau
-              </button>
-            </div>
+                )}
+              />
+            )
           )}
         </div>
       </main>
@@ -261,7 +310,9 @@ export default function KanjiDictionary() {
                             Onyomi
                           </span>
                           <span className="font-medium text-[var(--color-ink-1)]">
-                            {selectedKanji.onyomi || "-"}
+                            {selectedKanji.onyomi
+                              ? formatReading(selectedKanji.onyomi).join(", ")
+                              : "-"}
                           </span>
                         </div>
                         <div className="bg-[var(--color-paper-1)] p-4 flex flex-col justify-between">
@@ -269,7 +320,9 @@ export default function KanjiDictionary() {
                             Kunyomi
                           </span>
                           <span className="font-medium text-[var(--color-ink-1)]">
-                            {selectedKanji.kunyomi || "-"}
+                            {selectedKanji.kunyomi
+                              ? formatReading(selectedKanji.kunyomi).join(", ")
+                              : "-"}
                           </span>
                         </div>
                       </div>
@@ -295,7 +348,10 @@ export default function KanjiDictionary() {
                                 {ex.kanji}
                               </span>
                               <span className="text-sm text-[var(--color-ink-2)]">
-                                {ex.kunyomi || ex.onyomi} • {ex.hanViet}
+                                {formatReading(ex.kunyomi || ex.onyomi).join(
+                                  ", "
+                                )}{" "}
+                                • {ex.hanViet}
                               </span>
                             </div>
                             <div className="sm:text-right flex flex-col sm:items-end">

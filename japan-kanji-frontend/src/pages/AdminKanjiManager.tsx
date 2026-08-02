@@ -3,6 +3,7 @@ import { Upload, Plus, Search, Edit2, Trash2, X, Settings } from "lucide-react";
 import Sidebar from "../components/ui/Sidebar";
 import api from "../services/api";
 import Papa from "papaparse";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // --- Types ---
 interface Kanji {
@@ -444,14 +445,31 @@ export default function AdminKanjiManager() {
                 </thead>
                 <tbody className="divide-y divide-[var(--color-ink-2)]">
                   {isLoading ? (
-                    <tr>
-                      <td
-                        colSpan={7}
-                        className="p-12 text-center text-[var(--color-ink-2)] font-medium"
-                      >
-                        Đang tải dữ liệu hệ thống...
-                      </td>
-                    </tr>
+                    Array.from({ length: 10 }).map((_, i) => (
+                      <tr key={i}>
+                        <td className="p-4 w-20">
+                          <Skeleton className="h-10 w-10 mx-auto rounded" />
+                        </td>
+                        <td className="p-4">
+                          <Skeleton className="h-5 w-24 rounded" />
+                        </td>
+                        <td className="p-4">
+                          <Skeleton className="h-5 w-48 rounded" />
+                        </td>
+                        <td className="p-4">
+                          <Skeleton className="h-5 w-32 rounded" />
+                        </td>
+                        <td className="p-4 w-20">
+                          <Skeleton className="h-5 w-8 mx-auto rounded" />
+                        </td>
+                        <td className="p-4 w-16">
+                          <Skeleton className="h-5 w-6 mx-auto rounded" />
+                        </td>
+                        <td className="p-4">
+                          <Skeleton className="h-8 w-24 ml-auto rounded" />
+                        </td>
+                      </tr>
+                    ))
                   ) : filteredKanjis.length === 0 ? (
                     <tr>
                       <td

@@ -6,6 +6,7 @@ import type { VocabularyResponse } from "../types/vocabulary.types";
 import { vocabularyService } from "../services/vocabulary.service";
 import { ArrowLeft, Search, Plus, Trash2, BookOpen } from "lucide-react";
 import Sidebar from "../components/ui/Sidebar";
+import { Skeleton } from "../components/ui/Skeleton";
 
 export default function DeckManager() {
   const { deckId } = useParams();
@@ -82,8 +83,20 @@ export default function DeckManager() {
     return (
       <div className="flex h-screen bg-[var(--color-paper-2)] overflow-hidden font-sans">
         <Sidebar />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-[var(--color-ink-3)] border-t-[var(--color-ink-1)] rounded-full animate-spin"></div>
+        <main className="flex-1 overflow-y-auto p-8 lg:p-12 relative flex flex-col">
+          <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col space-y-8">
+            <header className="flex flex-col gap-4">
+              <Skeleton className="h-4 w-32" />
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-12 w-12" />
+                <Skeleton className="h-8 w-64" />
+              </div>
+            </header>
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[500px]">
+              <Skeleton className="h-full w-full" />
+              <Skeleton className="h-full w-full" />
+            </div>
+          </div>
         </main>
       </div>
     );

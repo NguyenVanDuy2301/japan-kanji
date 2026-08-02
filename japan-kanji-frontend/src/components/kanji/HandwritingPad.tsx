@@ -1,13 +1,9 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Undo2, Trash2, Edit3, X } from "lucide-react";
-
-interface StrokePoint {
-  x: number;
-  y: number;
-  t: number;
-}
-
-type Stroke = StrokePoint[];
+import {
+  handwritingService,
+  type Stroke,
+} from "../../services/handwriting.service";
 
 interface HandwritingPadProps {
   onSelect: (kanji: string) => void;
@@ -183,45 +179,12 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
     setIsFetching(true);
 
     try {
-      // Chuẩn bị payload theo chuẩn của Google Input Tools
-      const ink = currentStrokes.map((stroke) => {
-        const xArr = stroke.map((p) => p.x);
-        const yArr = stroke.map((p) => p.y);
-        const tArr = stroke.map((p) => p.t - stroke[0].t); // relative time
-        return [xArr, yArr, tArr];
-      });
-
-      const payload = {
-        options: "enable_pre_space",
-        requests: [
-          {
-            writing_guide: {
-              writing_area_width: canvasSize.width,
-              writing_area_height: canvasSize.height,
-            },
-            ink: ink,
-            language: "ja",
-          },
-        ],
-      };
-
-      const response = await fetch(
-        "https://inputtools.google.com/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
+      const results = await handwritingService.recognizeKanji(
+        currentStrokes,
+        canvasSize.width,
+        canvasSize.height
       );
-
-      const data = await response.json();
-      if (data[0] === "SUCCESS" && data[1] && data[1][0] && data[1][0][1]) {
-        // Lấy danh sách kết quả trả về, loại bỏ những chuỗi dài nếu có, chỉ lấy kanji đơn
-        const results: string[] = data[1][0][1];
-        setPredictions(results.filter((c) => c.length === 1).slice(0, 15)); // Lấy nhiều hơn vì màn ngang
-      }
+      setPredictions(results);
     } catch (error) {
       console.error("Handwriting recognition failed:", error);
     } finally {

@@ -18,6 +18,9 @@ import {
 } from "../services/statistics.service";
 import { useNavigate } from "react-router-dom";
 import DeckCard from "../components/ui/DeckCard";
+import { Skeleton } from "../components/ui/Skeleton";
+import { StatCardSkeleton } from "../components/ui/StatCardSkeleton";
+import { DeckCardSkeleton } from "../components/ui/DeckCardSkeleton";
 import Sidebar from "../components/ui/Sidebar";
 import { BadgeShowcase } from "../components/ui/BadgeShowcase";
 
@@ -236,8 +239,24 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto p-8 lg:p-12">
         {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="w-8 h-8 border-2 border-[var(--color-ink-3)] border-t-[var(--color-ink-1)] rounded-full animate-spin"></div>
+          <div className="max-w-6xl mx-auto space-y-12">
+            <header>
+              <Skeleton className="h-10 w-96 mb-2" />
+              <Skeleton className="h-5 w-64" />
+            </header>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <StatCardSkeleton key={i} />
+              ))}
+            </div>
+            <div className="space-y-6">
+              <Skeleton className="h-8 w-48 mb-4" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <DeckCardSkeleton key={i} />
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="max-w-6xl mx-auto space-y-12">

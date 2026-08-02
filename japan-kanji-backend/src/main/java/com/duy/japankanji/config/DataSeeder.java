@@ -82,9 +82,18 @@ public class DataSeeder implements CommandLineRunner {
                 ObjectMapper objectMapper = new ObjectMapper();
                 List<Kanji> kanjis = objectMapper.readValue(is, new TypeReference<List<Kanji>>() {
                 });
-                vocabularies = kanjis.stream().map(k -> new Vocabulary(
-                        null, k.getCharacter(), k.getOnyomi(), k.getKunyomi(), k.getHanViet(), k.getMeaning(),
-                        k.getJlptLevel(), "noun", k.getStrokeCount())).collect(Collectors.toList());
+                vocabularies = kanjis.stream().map(k -> {
+                    String extractedReading = extractVocabularyReading(k.getOnyomi(), k.getKunyomi());
+                    boolean fromOnyomi = k.getOnyomi() != null && k.getOnyomi().contains(extractedReading != null ? extractedReading : "");
+                    boolean fromKunyomi = k.getKunyomi() != null && k.getKunyomi().contains(extractedReading != null ? extractedReading : "");
+                    
+                    String onyomi = (fromOnyomi && !fromKunyomi) ? extractedReading : null;
+                    String kunyomi = fromKunyomi ? extractedReading : null;
+
+                    return new Vocabulary(
+                            null, k.getCharacter(), onyomi, kunyomi, k.getHanViet(), k.getMeaning(),
+                            k.getJlptLevel(), "noun", k.getStrokeCount());
+                }).collect(Collectors.toList());
             } else {
                 throw new RuntimeException("Could not find kanji-seed.json");
             }
@@ -124,5 +133,29 @@ public class DataSeeder implements CommandLineRunner {
             System.err.println("Failed to seed Kanjis: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private String extractVocabularyReading(String onyomi, String kunyomi) {
+        if (kunyomi != null && !kunyomi.trim().isEmpty()) {
+            String[] parts = kunyomi.split(",");
+            for (String part : parts) {
+                part = part.trim();
+                if (!part.isEmpty() && !part.contains("-")) {
+                    return part;
+                }
+            }
+        }
+        
+        if (onyomi != null && !onyomi.trim().isEmpty()) {
+            String[] parts = onyomi.split(",");
+            for (String part : parts) {
+                part = part.trim();
+                if (!part.isEmpty()) {
+                    return part;
+                }
+            }
+        }
+        
+        return "";
     }
 }
