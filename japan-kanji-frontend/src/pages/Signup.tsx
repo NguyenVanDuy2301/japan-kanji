@@ -10,10 +10,10 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  
+
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -23,14 +23,15 @@ export default function Signup() {
       setError("Vui lòng điền đầy đủ thông tin.");
       return;
     }
-    
+
     if (password !== confirmPassword) {
       setError("Mật khẩu không khớp.");
       return;
     }
 
-    if (password.length < 6) {
-      setError("Mật khẩu phải có ít nhất 6 ký tự.");
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setError("Mật khẩu phải dài tối thiểu 8 ký tự, bao gồm cả chữ và số.");
       return;
     }
 
@@ -38,15 +39,28 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      const response = await authService.register({ username, email, password });
+      const response = await authService.register({
+        username,
+        email,
+        password,
+      });
       login(response.token, response.username, response.userId, response.role);
       navigate("/"); // Redirect to home/dashboard
     } catch (err: any) {
       // Show persistent error
-      if (err.response && err.response.data && typeof err.response.data === 'string') {
-        setError(err.response.data);
-      } else if (err.response && err.response.status === 400) {
-        setError("Dữ liệu không hợp lệ. Tên đăng nhập hoặc email có thể đã tồn tại.");
+      if (err.response && err.response.data) {
+        const data = err.response.data;
+        if (typeof data === "string") {
+          setError(data);
+        } else if (data.error) {
+          setError(data.error);
+        } else {
+          // If it's a validation error object from Spring, get the first value
+          const firstError = Object.values(data)[0] as string;
+          setError(
+            firstError || "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại."
+          );
+        }
       } else {
         setError("Có lỗi xảy ra. Vui lòng thử lại sau.");
       }
@@ -55,10 +69,12 @@ export default function Signup() {
     }
   };
 
-  const handleInputChange = (setter: Dispatch<SetStateAction<string>>) => (e: ChangeEvent<HTMLInputElement>) => {
-    setter(e.target.value);
-    if (error) setError("");
-  };
+  const handleInputChange =
+    (setter: Dispatch<SetStateAction<string>>) =>
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setter(e.target.value);
+      if (error) setError("");
+    };
 
   return (
     <div className="min-h-screen flex bg-white">
@@ -75,7 +91,8 @@ export default function Signup() {
             Bắt Đầu Hành Trình
           </h2>
           <p className="text-lg text-neutral-300">
-            Tham gia cùng hàng nghìn học viên chinh phục Kanji với hệ thống lặp lại ngắt quãng. Tạo tài khoản miễn phí ngay hôm nay.
+            Tham gia cùng hàng nghìn học viên chinh phục Kanji với hệ thống lặp
+            lại ngắt quãng. Tạo tài khoản miễn phí ngay hôm nay.
           </p>
         </div>
       </div>
@@ -84,8 +101,12 @@ export default function Signup() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-24 overflow-y-auto">
         <div className="w-full max-w-sm">
           <div className="mb-10">
-            <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">Tạo tài khoản</h1>
-            <p className="text-neutral-500 mt-2">Bắt đầu học Kanji hoàn toàn miễn phí.</p>
+            <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">
+              Tạo tài khoản
+            </h1>
+            <p className="text-neutral-500 mt-2">
+              Bắt đầu học Kanji hoàn toàn miễn phí.
+            </p>
           </div>
 
           <form onSubmit={handleSignup} className="space-y-5">
@@ -104,11 +125,11 @@ export default function Signup() {
                 value={username}
                 onChange={handleInputChange(setUsername)}
                 disabled={isLoading}
-                className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? 'border-red-400 focus:border-red-600' : 'border-neutral-200 focus:border-neutral-900'} focus:outline-none transition-colors rounded-none`}
+                className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? "border-red-400 focus:border-red-600" : "border-neutral-200 focus:border-neutral-900"} focus:outline-none transition-colors rounded-none`}
                 placeholder="johndoe123"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-neutral-900 mb-2 mt-4">
                 Email
@@ -118,7 +139,7 @@ export default function Signup() {
                 value={email}
                 onChange={handleInputChange(setEmail)}
                 disabled={isLoading}
-                className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? 'border-red-400 focus:border-red-600' : 'border-neutral-200 focus:border-neutral-900'} focus:outline-none transition-colors rounded-none`}
+                className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? "border-red-400 focus:border-red-600" : "border-neutral-200 focus:border-neutral-900"} focus:outline-none transition-colors rounded-none`}
                 placeholder="john@example.com"
               />
             </div>
@@ -133,7 +154,7 @@ export default function Signup() {
                   value={password}
                   onChange={handleInputChange(setPassword)}
                   disabled={isLoading}
-                  className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? 'border-red-400 focus:border-red-600' : 'border-neutral-200 focus:border-neutral-900'} focus:outline-none transition-colors rounded-none`}
+                  className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? "border-red-400 focus:border-red-600" : "border-neutral-200 focus:border-neutral-900"} focus:outline-none transition-colors rounded-none`}
                   placeholder="••••••••"
                 />
               </div>
@@ -146,7 +167,7 @@ export default function Signup() {
                   value={confirmPassword}
                   onChange={handleInputChange(setConfirmPassword)}
                   disabled={isLoading}
-                  className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? 'border-red-400 focus:border-red-600' : 'border-neutral-200 focus:border-neutral-900'} focus:outline-none transition-colors rounded-none`}
+                  className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? "border-red-400 focus:border-red-600" : "border-neutral-200 focus:border-neutral-900"} focus:outline-none transition-colors rounded-none`}
                   placeholder="••••••••"
                 />
               </div>
@@ -167,9 +188,15 @@ export default function Signup() {
               )}
             </button>
           </form>
-          
+
           <div className="mt-8 text-center text-sm text-neutral-500">
-            Đã có tài khoản? <Link to="/login" className="text-neutral-900 font-semibold underline underline-offset-2">Đăng nhập</Link>
+            Đã có tài khoản?{" "}
+            <Link
+              to="/login"
+              className="text-neutral-900 font-semibold underline underline-offset-2"
+            >
+              Đăng nhập
+            </Link>
           </div>
         </div>
       </div>

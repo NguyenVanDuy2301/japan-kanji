@@ -53,6 +53,9 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
 - **Sửa lỗi dữ liệu tạo mẫu (Data Seeder Fix)**:
   - Khắc phục lỗi `DataSeeder` nhồi dữ liệu chứa nhiều cách đọc ngăn cách bằng dấu phẩy (vd: `かね, かな-, -がね`) vào cột `kunyomi` và `onyomi`. 
   - Bổ sung logic tự động trích xuất và ưu tiên cách đọc hợp lệ đầu tiên (loại bỏ các cách đọc chứa dấu gạch ngang), giúp màn hình Flashcard Frontend xác thực câu trả lời chính xác và thân thiện hơn.
+- **Bảo mật & Trải nghiệm (Security & UX)**:
+  - Bổ sung kiểm tra độ khó của mật khẩu (Regex) khi đăng ký ở cả Frontend và Backend (tối thiểu 8 ký tự, có cả chữ và số).
+  - Khắc phục lỗi hiển thị thông báo lỗi (Error parsing) bên Frontend, giúp render đúng thông báo lỗi validation trả về từ Spring Boot (GlobalExceptionHandler).
 
 ### Còn thiếu (Pending / Missing)
 - Bảng xếp hạng (Leaderboard) cho Giai đoạn 5.
