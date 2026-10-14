@@ -29,7 +29,7 @@ export default function Signup() {
       return;
     }
 
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
     if (!passwordRegex.test(password)) {
       setError("Mật khẩu phải dài tối thiểu 8 ký tự, bao gồm cả chữ và số.");
       return;
