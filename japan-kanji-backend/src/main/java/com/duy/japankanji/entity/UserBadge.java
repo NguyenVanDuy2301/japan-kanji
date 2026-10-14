@@ -2,7 +2,6 @@ package com.duy.japankanji.entity;
 
 import com.duy.japankanji.entity.enums.BadgeType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,7 +15,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class UserBadge {
 
     @Id

@@ -68,7 +68,7 @@ public class VocabularyService {
     }
 
     public java.util.List<VocabularyResponse> saveBulk(java.util.List<VocabularyRequest> requests) {
-        java.util.List<String> kanjis = requests.stream().map(VocabularyRequest::kanji).toList();
+        java.util.List<String> kanjis = requests.stream().map(r -> r.kanji()).toList();
         java.util.Set<String> existingKanjis = new java.util.HashSet<>(vocabularyRepository.findKanjisIn(kanjis));
         
         java.util.List<Vocabulary> toSave = new java.util.ArrayList<>();

@@ -9,7 +9,6 @@ import com.duy.japankanji.repository.ReviewProgressRepository;
 import com.duy.japankanji.repository.UserRepository;
 import com.duy.japankanji.repository.VocabularyRepository;
 import com.duy.japankanji.event.VocabularyLearnedEvent;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class StudyService {
 
     private final ReviewProgressRepository reviewProgressRepository;
@@ -27,6 +25,20 @@ public class StudyService {
     private final VocabularyRepository vocabularyRepository;
     private final Sm2Service sm2Service;
     private final ApplicationEventPublisher eventPublisher;
+
+    public StudyService(
+            ReviewProgressRepository reviewProgressRepository,
+            UserRepository userRepository,
+            VocabularyRepository vocabularyRepository,
+            Sm2Service sm2Service,
+            ApplicationEventPublisher eventPublisher
+    ) {
+        this.reviewProgressRepository = reviewProgressRepository;
+        this.userRepository = userRepository;
+        this.vocabularyRepository = vocabularyRepository;
+        this.sm2Service = sm2Service;
+        this.eventPublisher = eventPublisher;
+    }
 
     public List<VocabularyResponse> getLessons(Long deckId, String username, int limit) {
         User user = userRepository.findByUsername(username).orElseThrow();

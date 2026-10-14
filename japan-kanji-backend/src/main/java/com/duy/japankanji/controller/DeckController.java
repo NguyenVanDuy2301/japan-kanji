@@ -5,7 +5,6 @@ import com.duy.japankanji.dto.DeckResponse;
 import com.duy.japankanji.service.DeckService;
 import com.duy.japankanji.service.UserLibraryService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -14,12 +13,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/decks")
-@RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:5173")
 public class DeckController {
 
     private final DeckService deckService;
     private final UserLibraryService userLibraryService;
+
+    public DeckController(DeckService deckService, UserLibraryService userLibraryService) {
+        this.deckService = deckService;
+        this.userLibraryService = userLibraryService;
+    }
 
     @GetMapping("/official")
     public ResponseEntity<List<DeckResponse>> getOfficialDecks() {

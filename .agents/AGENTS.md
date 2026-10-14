@@ -22,7 +22,8 @@ Nguyên tắc bắt buộc: **Controller → Service → Repository**, tầng tr
 - Password luôn hash bằng BCrypt (`PasswordEncoder`), không bao giờ lưu plain text.
 
 ## Quy ước code
-- Dùng Lombok (`@Getter @Setter @NoArgsConstructor @AllArgsConstructor`) cho entity, tránh viết boilerplate tay.
+- Entity dùng Lombok `@Getter @Setter @NoArgsConstructor` để tránh viết boilerplate tay. KHÔNG dùng `@AllArgsConstructor` (JPA chỉ cần constructor rỗng, và IDE hay báo lỗi giả với constructor do Lombok sinh); tạo object bằng setter.
+- Controller/Service/Component dùng constructor injection viết tay tường minh, KHÔNG dùng `@RequiredArgsConstructor` (cùng lý do IDE ở trên).
 - DTO dùng Java `record`.
 - Tên biến/hàm bằng tiếng Anh, comment giải thích có thể bằng tiếng Việt.
 - Luôn ưu tiên constructor injection (DI) thay vì field injection.

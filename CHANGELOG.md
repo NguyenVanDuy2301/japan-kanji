@@ -56,6 +56,11 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
 - **Bảo mật & Trải nghiệm (Security & UX)**:
   - Bổ sung kiểm tra độ khó của mật khẩu (Regex) khi đăng ký ở cả Frontend và Backend (tối thiểu 8 ký tự, có cả chữ và số).
   - Khắc phục lỗi hiển thị thông báo lỗi (Error parsing) bên Frontend, giúp render đúng thông báo lỗi validation trả về từ Spring Boot (GlobalExceptionHandler).
+  - Sửa regex mật khẩu (cả Frontend và Backend) không còn giới hạn bộ ký tự được phép: chỉ yêu cầu tối thiểu 8 ký tự, có cả chữ và số, nên mật khẩu chứa `_`, `-`, `.` hoặc dấu cách không còn bị từ chối nhầm. Thêm `RegisterRequestValidationTest` để kiểm tra quy tắc này.
+- **Sửa lỗi Linter & Chuẩn hóa Controller (Bugfix & Refactor)**:
+  - Sửa lỗi React Rules of Hooks (`useEffect` bị gọi sau lệnh return điều kiện) trong component `PrototypeSwitcher.tsx`.
+  - Chuẩn hóa toàn bộ Backend (Controller, Service, Event Listener, DataSeeder) sang constructor injection tường minh, không còn dùng `@RequiredArgsConstructor` của Lombok, để IDE không báo lỗi giả khi xử lý Lombok. Hành vi không đổi.
+  - Gỡ `@AllArgsConstructor` khỏi các entity (`Deck`, `User`, `Kanji`, `ReviewProgress`, `UserBadge`, `Vocabulary`) vì constructor này không cần thiết (JPA chỉ cần `@NoArgsConstructor`). `DataSeeder` và `VocabularyServiceTest` chuyển sang khởi tạo bằng setter. Việc này giúp IDE hết báo lỗi giả "Flexible Constructor Bodies / early construction context" (Language Server xử lý Lombok khác với Maven).
 
-### Còn thiếu (Pending / Missing)
-- Bảng xếp hạng (Leaderboard) cho Giai đoạn 5.
+### Không nằm trong phạm vi (Out of Scope)
+- **Bảng xếp hạng (Leaderboard)**: Tính năng cạnh tranh giữa người dùng. Được đánh giá là không cần thiết ở giai đoạn hiện tại và tạm thời loại khỏi phạm vi dự án.

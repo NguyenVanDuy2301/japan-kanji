@@ -8,7 +8,6 @@ import com.duy.japankanji.entity.Vocabulary;
 import com.duy.japankanji.repository.DeckRepository;
 import com.duy.japankanji.repository.UserRepository;
 import com.duy.japankanji.repository.VocabularyRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +15,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class DeckService {
 
     private final DeckRepository deckRepository;
     private final UserRepository userRepository;
     private final VocabularyRepository vocabularyRepository;
+
+    public DeckService(
+            DeckRepository deckRepository,
+            UserRepository userRepository,
+            VocabularyRepository vocabularyRepository
+    ) {
+        this.deckRepository = deckRepository;
+        this.userRepository = userRepository;
+        this.vocabularyRepository = vocabularyRepository;
+    }
 
     @Transactional(readOnly = true)
     public List<DeckResponse> getOfficialDecks() {

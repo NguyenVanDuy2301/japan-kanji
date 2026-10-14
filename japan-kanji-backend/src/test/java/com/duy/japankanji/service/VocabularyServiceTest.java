@@ -46,7 +46,16 @@ class VocabularyServiceTest {
         // Giả lập: "学" đã tồn tại trong DB, "校" chưa tồn tại
         when(vocabularyRepository.findKanjisIn(anyList())).thenReturn(List.of("学"));
 
-        Vocabulary savedKou = new Vocabulary(2L, "校", "コウ", "-", "HIỆU", "Trường học", "N5", "noun", 10);
+        Vocabulary savedKou = new Vocabulary();
+        savedKou.setId(2L);
+        savedKou.setKanji("校");
+        savedKou.setOnyomi("コウ");
+        savedKou.setKunyomi("-");
+        savedKou.setHanViet("HIỆU");
+        savedKou.setMeaning("Trường học");
+        savedKou.setJlptLevel("N5");
+        savedKou.setWordType("noun");
+        savedKou.setStrokeCount(10);
         when(vocabularyRepository.saveAll(anyList())).thenReturn(List.of(savedKou));
         when(kanjiRepository.findByCharacter(anyString())).thenReturn(java.util.Optional.empty());
 

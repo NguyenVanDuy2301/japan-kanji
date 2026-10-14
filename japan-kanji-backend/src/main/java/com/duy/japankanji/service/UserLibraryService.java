@@ -5,7 +5,6 @@ import com.duy.japankanji.entity.Deck;
 import com.duy.japankanji.entity.User;
 import com.duy.japankanji.repository.DeckRepository;
 import com.duy.japankanji.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,11 +12,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class UserLibraryService {
 
     private final UserRepository userRepository;
     private final DeckRepository deckRepository;
+
+    public UserLibraryService(UserRepository userRepository, DeckRepository deckRepository) {
+        this.userRepository = userRepository;
+        this.deckRepository = deckRepository;
+    }
 
     @Transactional(readOnly = true)
     public List<DeckResponse> getSavedDecks(String username) {

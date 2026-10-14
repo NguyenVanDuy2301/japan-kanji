@@ -6,7 +6,6 @@ import com.duy.japankanji.repository.UserBadgeRepository;
 import com.duy.japankanji.repository.UserRepository;
 import com.duy.japankanji.repository.ReviewProgressRepository;
 import com.duy.japankanji.repository.VocabularyRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,13 +16,24 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class BadgeService {
 
     private final UserBadgeRepository userBadgeRepository;
     private final UserRepository userRepository;
     private final ReviewProgressRepository reviewProgressRepository;
     private final VocabularyRepository vocabularyRepository;
+
+    public BadgeService(
+            UserBadgeRepository userBadgeRepository,
+            UserRepository userRepository,
+            ReviewProgressRepository reviewProgressRepository,
+            VocabularyRepository vocabularyRepository
+    ) {
+        this.userBadgeRepository = userBadgeRepository;
+        this.userRepository = userRepository;
+        this.reviewProgressRepository = reviewProgressRepository;
+        this.vocabularyRepository = vocabularyRepository;
+    }
 
     public List<BadgeResponse> getUserBadges(String username) {
         Long userId = userRepository.findByUsername(username).orElseThrow().getId();

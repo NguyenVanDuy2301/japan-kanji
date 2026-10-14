@@ -6,7 +6,6 @@ import com.duy.japankanji.entity.Vocabulary;
 import com.duy.japankanji.repository.DeckRepository;
 import com.duy.japankanji.repository.UserRepository;
 import com.duy.japankanji.repository.VocabularyRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -22,7 +21,6 @@ import com.duy.japankanji.entity.Kanji;
 import com.duy.japankanji.repository.KanjiRepository;
 
 @Component
-@RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
@@ -30,6 +28,20 @@ public class DataSeeder implements CommandLineRunner {
     private final DeckRepository deckRepository;
     private final PasswordEncoder passwordEncoder;
     private final KanjiRepository kanjiRepository;
+
+    public DataSeeder(
+            UserRepository userRepository,
+            VocabularyRepository vocabularyRepository,
+            DeckRepository deckRepository,
+            PasswordEncoder passwordEncoder,
+            KanjiRepository kanjiRepository
+    ) {
+        this.userRepository = userRepository;
+        this.vocabularyRepository = vocabularyRepository;
+        this.deckRepository = deckRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.kanjiRepository = kanjiRepository;
+    }
 
     @Override
     @Transactional
@@ -90,9 +102,16 @@ public class DataSeeder implements CommandLineRunner {
                     String onyomi = (fromOnyomi && !fromKunyomi) ? extractedReading : null;
                     String kunyomi = fromKunyomi ? extractedReading : null;
 
-                    return new Vocabulary(
-                            null, k.getCharacter(), onyomi, kunyomi, k.getHanViet(), k.getMeaning(),
-                            k.getJlptLevel(), "noun", k.getStrokeCount());
+                    Vocabulary vocabulary = new Vocabulary();
+                    vocabulary.setKanji(k.getCharacter());
+                    vocabulary.setOnyomi(onyomi);
+                    vocabulary.setKunyomi(kunyomi);
+                    vocabulary.setHanViet(k.getHanViet());
+                    vocabulary.setMeaning(k.getMeaning());
+                    vocabulary.setJlptLevel(k.getJlptLevel());
+                    vocabulary.setWordType("noun");
+                    vocabulary.setStrokeCount(k.getStrokeCount());
+                    return vocabulary;
                 }).collect(Collectors.toList());
             } else {
                 throw new RuntimeException("Could not find kanji-seed.json");
