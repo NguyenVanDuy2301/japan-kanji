@@ -5,6 +5,11 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
 ## [Giai đoạn 2: Màn Hình Học Tập (Lessons & Reviews)]
 
 ### Đã làm (Completed)
+- **Cập nhật & Tối ưu hóa Agent Skills**:
+  - Cập nhật toàn bộ các bộ kỹ năng (skills) từ `mattpocock/skills` và `hallmark` lên phiên bản mới nhất.
+  - Tải và đồng bộ hóa phiên bản v2.0 của bộ công cụ thiết kế giao diện `ui-ux-pro-max-skill` trong thư mục frontend (`banner-design`, `brand`, `design`, `design-system`, `slides`, `ui-styling`, `ui-ux-pro-max`).
+  - Gỡ bỏ 9 kỹ năng đã ngưng hỗ trợ / bị xóa khỏi repo upstream (`batch-grill-me`, `design-an-interface`, `edit-article`, `obsidian-vault`, `qa`, `request-refactor-plan`, `resolving-merge-conflicts`, `ubiquitous-language`, `writing-great-skills`).
+  - Chuyển hướng và cài đặt lại 2 kỹ năng đã thay đổi đường dẫn repo upstream (`to-questionnaire`, `wizard`).
 - **Tạo dữ liệu mẫu (Data Seeding)**: Hoàn thiện `DataSeeder.java`, tự động tạo bộ bài "JLPT N5 Core" cùng các từ vựng N5 cơ bản (Onyomi, Kunyomi, Hán Việt, Nghĩa) và các tài khoản mẫu (admin, user).
 - **Backend API Học & Ôn tập**: Cấu hình thuật toán Spaced Repetition (SM-2) trong `StudyService.java`. Xây dựng các API trả về từ mới (`/lessons`), từ ôn tập (`/reviews`), chế độ luyện tập (`/practice`), và chấm điểm (`/submit-review`).
 - **Giao diện Học từ mới (Lesson Session)**: Xây dựng màn hình lật thẻ (Flip Card) 3D mượt mà. Đơn giản hóa UX bằng cách gộp thành một nút "Vào Học" duy nhất trên trang chủ: Hệ thống sẽ tự động bắt đầu bài học mới nếu có từ chưa thuộc, hoặc tự động chuyển sang "Chế độ Luyện Tập" nếu người dùng đã học hết từ mới, giúp trải nghiệm liền mạch không bị gián đoạn.
