@@ -5,6 +5,13 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
 ## [Giai đoạn 2: Màn Hình Học Tập (Lessons & Reviews)]
 
 ### Đã làm (Completed)
+- **Chuẩn bị Deploy (Cấu hình an toàn cho Production & Docker Compose)**:
+  - Đổi `spring.jpa.hibernate.ddl-auto` từ `create` sang `update`: khởi động lại backend không còn xóa sạch dữ liệu người dùng.
+  - Chuyển thông tin database, `jwt.secret`, CORS (`CORS_ALLOWED_ORIGINS`) và tài khoản admin sang biến môi trường (có giá trị mặc định cho local). Logic xử lý JWT giữ nguyên.
+  - Thêm `application-prod.properties` (bật bằng `SPRING_PROFILES_ACTIVE=prod`): bắt buộc khai báo `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, thiếu biến nào là app báo lỗi ngay khi khởi động; tắt log SQL.
+  - `DataSeeder` đọc tài khoản admin từ cấu hình và chỉ tạo tài khoản demo `user1`/`user2` khi `app.seed.demo-users=true` (tắt ở production).
+  - Cập nhật `api.ts` ở Frontend linh hoạt nhận `VITE_API_BASE_URL` hoặc gọi qua Nginx reverse proxy khi build production.
+  - Bổ sung `Dockerfile` cho Backend & Frontend, `nginx.conf`, `.env.example` và `docker-compose.prod.yml` để triển khai toàn bộ hệ thống trên AWS EC2 bằng 1 lệnh.
 - **Cập nhật & Tối ưu hóa Agent Skills**:
   - Cập nhật toàn bộ các bộ kỹ năng (skills) từ `mattpocock/skills` và `hallmark` lên phiên bản mới nhất.
   - Tải và đồng bộ hóa phiên bản v2.0 của bộ công cụ thiết kế giao diện `ui-ux-pro-max-skill` trong thư mục frontend (`banner-design`, `brand`, `design`, `design-system`, `slides`, `ui-styling`, `ui-ux-pro-max`).

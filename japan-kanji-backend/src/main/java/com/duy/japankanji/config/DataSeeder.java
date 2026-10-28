@@ -6,6 +6,7 @@ import com.duy.japankanji.entity.Vocabulary;
 import com.duy.japankanji.repository.DeckRepository;
 import com.duy.japankanji.repository.UserRepository;
 import com.duy.japankanji.repository.VocabularyRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -29,38 +30,62 @@ public class DataSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final KanjiRepository kanjiRepository;
 
+    // Thông tin admin đọc từ cấu hình (biến môi trường), không hard-code trong code nữa
+    private final String adminUsername;
+    private final String adminEmail;
+    private final String adminPassword;
+    // Chỉ tạo tài khoản demo (user1, user2) khi bật cờ này (local = true, prod = false)
+    private final boolean seedDemoUsers;
+
     public DataSeeder(
             UserRepository userRepository,
             VocabularyRepository vocabularyRepository,
             DeckRepository deckRepository,
             PasswordEncoder passwordEncoder,
-            KanjiRepository kanjiRepository
+            KanjiRepository kanjiRepository,
+            @Value("${app.admin.username}") String adminUsername,
+            @Value("${app.admin.email}") String adminEmail,
+            @Value("${app.admin.password}") String adminPassword,
+            @Value("${app.seed.demo-users:false}") boolean seedDemoUsers
     ) {
         this.userRepository = userRepository;
         this.vocabularyRepository = vocabularyRepository;
         this.deckRepository = deckRepository;
         this.passwordEncoder = passwordEncoder;
         this.kanjiRepository = kanjiRepository;
+        this.adminUsername = adminUsername;
+        this.adminEmail = adminEmail;
+        this.adminPassword = adminPassword;
+        this.seedDemoUsers = seedDemoUsers;
     }
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        seedUsers();
+        seedAdmin();
+        if (seedDemoUsers) {
+            seedDemoUsers();
+        }
         seedVocabulariesAndDecks();
         seedKanjis();
     }
 
-    private void seedUsers() {
-        if (!userRepository.existsByUsername("admin")) {
+    private void seedAdmin() {
+        if (adminPassword == null || adminPassword.isBlank()) {
+            throw new IllegalStateException("app.admin.password (ADMIN_PASSWORD) không được để trống");
+        }
+
+        if (!userRepository.existsByUsername(adminUsername)) {
             User admin = new User();
-            admin.setUsername("admin");
-            admin.setEmail("admin@japankanji.com");
-            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setUsername(adminUsername);
+            admin.setEmail(adminEmail);
+            admin.setPassword(passwordEncoder.encode(adminPassword));
             admin.setRole("ADMIN");
             userRepository.save(admin);
         }
+    }
 
+    private void seedDemoUsers() {
         if (!userRepository.existsByUsername("user1")) {
             User user1 = new User();
             user1.setUsername("user1");
@@ -85,7 +110,7 @@ public class DataSeeder implements CommandLineRunner {
             return;
         }
 
-        User admin = userRepository.findByUsername("admin").orElseThrow();
+        User admin = userRepository.findByUsername(adminUsername).orElseThrow();
 
         // Đọc dữ liệu từ file JSON để làm Vocabulary
         List<Vocabulary> vocabularies;
