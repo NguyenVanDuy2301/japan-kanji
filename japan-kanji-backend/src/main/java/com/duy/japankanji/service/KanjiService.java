@@ -9,6 +9,8 @@ import com.duy.japankanji.repository.KanjiRepository;
 import com.duy.japankanji.repository.VocabularyRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,11 +29,12 @@ public class KanjiService {
 
     @Transactional(readOnly = true)
     public Page<KanjiResponse> searchKanji(String query, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
         Page<Kanji> kanjis;
         if (query == null || query.trim().isEmpty()) {
-            kanjis = kanjiRepository.findAll(PageRequest.of(page, size));
+            kanjis = kanjiRepository.findAll(pageable);
         } else {
-            kanjis = kanjiRepository.searchKanji(query.trim(), PageRequest.of(page, size));
+            kanjis = kanjiRepository.searchKanji(query.trim(), pageable);
         }
         
         return kanjis.map(this::mapToResponse);

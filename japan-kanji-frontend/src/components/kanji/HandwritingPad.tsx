@@ -24,7 +24,6 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 256 });
   const debounceRef = useRef<number | null>(null);
 
-  // Khởi tạo kích thước canvas bằng với DOM element
   useEffect(() => {
     const updateCanvasSize = () => {
       if (containerRef.current && canvasRef.current) {
@@ -40,7 +39,6 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
     return () => window.removeEventListener("resize", updateCanvasSize);
   }, []);
 
-  // Vẽ lại toàn bộ strokes lên canvas
   const redraw = useCallback((allStrokes: Stroke[], activeStroke?: Stroke) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -49,21 +47,26 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Nền ô vuông 4 phần (ở giữa) như vở viết Kanji
-    ctx.strokeStyle = "#e2e8f0"; // slate-200
+    const styles = getComputedStyle(canvas);
+    const guideColor =
+      styles.getPropertyValue("--color-border-subtle").trim() ||
+      "oklch(0.89 0.008 85)";
+    const inkColor =
+      styles.getPropertyValue("--color-ink-1").trim() ||
+      "oklch(0.14 0.012 250)";
+
+    ctx.strokeStyle = guideColor;
     ctx.lineWidth = 1;
     ctx.setLineDash([5, 5]);
     ctx.beginPath();
-    // Kẻ dọc giữa
     ctx.moveTo(canvas.width / 2, 0);
     ctx.lineTo(canvas.width / 2, canvas.height);
-    // Kẻ ngang giữa
     ctx.moveTo(0, canvas.height / 2);
     ctx.lineTo(canvas.width, canvas.height / 2);
     ctx.stroke();
 
     ctx.setLineDash([]);
-    ctx.strokeStyle = "#1e293b"; // slate-800
+    ctx.strokeStyle = inkColor;
     ctx.lineWidth = 4;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -84,7 +87,6 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
     }
   }, []);
 
-  // Update canvas khi strokes hoặc resize thay đổi
   useEffect(() => {
     redraw(strokes);
   }, [strokes, redraw, canvasSize]);
@@ -130,7 +132,7 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
     if (!canvas) return { offsetX: 0, offsetY: 0 };
     const rect = canvas.getBoundingClientRect();
 
-    let clientX, clientY;
+    let clientX: number, clientY: number;
     if ("touches" in e) {
       clientX = e.touches[0].clientX;
       clientY = e.touches[0].clientY;
@@ -139,7 +141,6 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
       clientY = (e as React.MouseEvent).clientY;
     }
 
-    // Scale the coordinates to match the internal canvas resolution
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
@@ -171,7 +172,7 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
 
     debounceRef.current = window.setTimeout(() => {
       recognizeKanji(currentStrokes);
-    }, 800);
+    }, 650);
   };
 
   const recognizeKanji = async (currentStrokes: Stroke[]) => {
@@ -193,25 +194,26 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
   };
 
   return (
-    <div className="bg-white border border-slate-200 shadow-2xl rounded-xl p-5 flex flex-col gap-4 w-full">
+    <div className="glass-panel bg-[var(--color-paper-1)]/98 border border-[var(--color-border-strong)] shadow-[var(--shadow-elevated)] rounded-2xl p-5 flex flex-col gap-4 w-full">
       <div className="flex justify-between items-center px-1">
-        <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-          <Edit3 size={18} className="text-indigo-600" />
-          Bảng Vẽ Cảm Ứng
+        <h3 className="text-sm font-bold text-[var(--color-ink-1)] flex items-center gap-2">
+          <Edit3 size={17} className="text-[var(--color-accent-1)]" />
+          <span>Bảng Vẽ Nhận Diện Chữ Hán</span>
         </h3>
         {onClose && (
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+            className="text-[var(--color-ink-3)] hover:text-[var(--color-ink-1)] transition-colors p-1 rounded-lg hover:bg-[var(--color-paper-2)] cursor-pointer"
+            aria-label="Đóng bảng vẽ"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         )}
       </div>
 
       <div
         ref={containerRef}
-        className="relative border-2 border-slate-300 rounded-lg overflow-hidden bg-slate-50 cursor-crosshair touch-none w-full h-64 sm:h-72"
+        className="relative border border-[var(--color-border-strong)] rounded-xl overflow-hidden bg-[var(--color-paper-1)] cursor-crosshair touch-none w-full h-64"
       >
         <canvas
           ref={canvasRef}
@@ -225,7 +227,7 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
           className="w-full h-full"
         />
         {isFetching && (
-          <div className="absolute top-3 right-3 w-5 h-5 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <div className="absolute top-3 right-3 w-5 h-5 border-2 border-[var(--color-border-subtle)] border-t-[var(--color-accent-1)] rounded-full animate-spin" />
         )}
       </div>
 
@@ -234,24 +236,24 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
           <button
             onClick={handleUndo}
             disabled={strokes.length === 0}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg disabled:opacity-50 transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[var(--color-ink-1)] bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-border-subtle)] rounded-lg disabled:opacity-40 transition-colors cursor-pointer"
           >
-            <Undo2 size={16} /> Hoàn tác
+            <Undo2 size={14} /> Hoàn tác
           </button>
           <button
             onClick={handleClear}
             disabled={strokes.length === 0}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg disabled:opacity-50 transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[var(--color-accent-1)] bg-[var(--color-accent-soft)] hover:opacity-90 rounded-lg disabled:opacity-40 transition-opacity cursor-pointer"
           >
-            <Trash2 size={16} /> Xóa hết
+            <Trash2 size={14} /> Xóa hết
           </button>
         </div>
-        <div className="text-sm text-slate-400 italic hidden sm:block">
-          Gợi ý: Viết chữ Hán vào giữa khung kẻ
+        <div className="text-xs text-[var(--color-ink-3)] hidden sm:block">
+          Viết chữ Hán theo đúng thứ tự nét vào giữa khung
         </div>
       </div>
 
-      <div className="h-14 flex items-center justify-start gap-2 overflow-x-auto px-1 hide-scrollbar bg-slate-50 rounded-lg border border-slate-100 py-1">
+      <div className="h-14 flex items-center justify-start gap-2 overflow-x-auto px-2 bg-[var(--color-paper-2)] rounded-xl border border-[var(--color-border-subtle)] py-1.5">
         {predictions.length > 0 ? (
           predictions.map((kanji, idx) => (
             <button
@@ -260,16 +262,16 @@ export const HandwritingPad: React.FC<HandwritingPadProps> = ({
                 onSelect(kanji);
                 if (onClose) onClose();
               }}
-              className="min-w-[48px] h-12 flex-shrink-0 flex items-center justify-center text-2xl font-serif text-slate-800 hover:text-indigo-600 hover:bg-indigo-100 border border-slate-200 rounded-md transition-colors bg-white shadow-sm"
+              className="min-w-[44px] h-10 flex-shrink-0 flex items-center justify-center text-2xl font-serif font-bold text-[var(--color-ink-1)] hover:text-[var(--color-paper-1)] hover:bg-[var(--color-accent-1)] border border-[var(--color-border-subtle)] rounded-lg transition-colors bg-[var(--color-paper-1)] shadow-2xs cursor-pointer"
             >
               {kanji}
             </button>
           ))
         ) : (
-          <div className="text-sm text-slate-400 w-full text-center italic">
+          <div className="text-xs text-[var(--color-ink-3)] w-full text-center">
             {strokes.length > 0
-              ? "Đang nhận diện..."
-              : "Các kết quả dự đoán sẽ hiển thị ở đây"}
+              ? "Đang nhận diện nét chữ..."
+              : "Kết quả gợi ý chữ Hán sẽ xuất hiện tại đây"}
           </div>
         )}
       </div>

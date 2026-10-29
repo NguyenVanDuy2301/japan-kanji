@@ -1,27 +1,51 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Shippori+Mincho:wght@500;700;800&display=swap");
+/* Hallmark · system: Japan-Kanji · genre: editorial-minimal · theme: washi-cinnabar */
+/* critique: unified warm washi tokens, sumi ink hierarchy, cinnabar seal accents, spring motion */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Shippori+Mincho:wght@500;600;700;800&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --color-paper-1: oklch(0.99 0 0); /* L=99% Pure white paper */
-  --color-paper-2: oklch(0.97 0.01 250); /* Slight cool gray paper */
-  --color-paper-3: oklch(0.94 0.01 250);
+  --color-paper-1: oklch(0.995 0.003 85);
+  --color-paper-2: oklch(0.972 0.006 85);
+  --color-paper-3: oklch(0.942 0.009 85);
 
-  --color-surface-1: oklch(0.2 0.01 250); /* Dark surface for split */
-  --color-surface-2: oklch(0.15 0.01 250);
-  --color-surface-3: oklch(0.12 0.01 250);
+  --color-surface-1: oklch(0.18 0.015 255);
+  --color-surface-2: oklch(0.14 0.015 255);
+  --color-surface-3: oklch(0.11 0.012 255);
 
-  --color-accent-1: oklch(0.55 0.22 25); /* Cinnabar Red / Crimson */
-  --color-accent-2: oklch(0.45 0.18 25);
+  --color-accent-1: oklch(0.55 0.21 27);
+  --color-accent-2: oklch(0.46 0.19 27);
+  --color-accent-soft: oklch(0.95 0.03 27);
 
-  --color-ink-1: oklch(0.1 0.01 250); /* Almost black */
-  --color-ink-2: oklch(0.35 0.01 250); /* Muted */
-  --color-ink-3: oklch(0.55 0.01 250); /* Disabled */
+  --color-gold-1: oklch(0.75 0.15 80);
+  --color-emerald-1: oklch(0.58 0.16 152);
 
-  --color-ink-inverse-1: oklch(0.99 0 0);
-  --color-ink-inverse-2: oklch(0.85 0.01 250);
+  --color-ink-1: oklch(0.14 0.012 250);
+  --color-ink-2: oklch(0.4 0.012 250);
+  --color-ink-3: oklch(0.6 0.01 250);
 
-  --font-sans: "Inter", system-ui, sans-serif;
+  --color-ink-inverse-1: oklch(0.99 0.002 85);
+  --color-ink-inverse-2: oklch(0.82 0.01 250);
+
+  --color-border-subtle: oklch(0.89 0.008 85);
+  --color-border-strong: oklch(0.76 0.012 250);
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-serif: "Shippori Mincho", "Noto Serif JP", serif;
+}
+
+:root {
+  --radius-card: 12px;
+  --radius-control: 8px;
+  --shadow-card:
+    0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+  --shadow-elevated:
+    0 12px 32px -8px rgba(15, 23, 42, 0.12),
+    0 4px 12px -2px rgba(15, 23, 42, 0.06);
+}
+
+html,
+body {
+  overflow-x: clip;
 }
 
 body {
@@ -29,14 +53,53 @@ body {
   background-color: var(--color-paper-2);
   color: var(--color-ink-1);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Hairlines for Workbench */
+/* Structural Hairlines */
 .hairline-b {
-  border-bottom: 1px solid oklch(0.9 0.01 250);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.hairline-t {
+  border-top: 1px solid var(--color-border-subtle);
 }
 .hairline-r {
-  border-right: 1px solid oklch(0.9 0.01 250);
+  border-right: 1px solid var(--color-border-subtle);
+}
+.hairline-l {
+  border-left: 1px solid var(--color-border-subtle);
+}
+
+/* Subtle Japanese Washi Dot & Grid Textures */
+.washi-grid {
+  background-image: radial-gradient(oklch(0.84 0.01 85) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.kanji-practice-grid {
+  background-color: var(--color-paper-1);
+  background-image:
+    linear-gradient(
+      to right,
+      transparent calc(50% - 0.5px),
+      oklch(0.88 0.01 85) calc(50% - 0.5px),
+      oklch(0.88 0.01 85) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    ),
+    linear-gradient(
+      to bottom,
+      transparent calc(50% - 0.5px),
+      oklch(0.88 0.01 85) calc(50% - 0.5px),
+      oklch(0.88 0.01 85) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    );
+}
+
+/* Frosted Glass Surface */
+.glass-panel {
+  background: color-mix(in oklch, var(--color-paper-1) 88%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 /* Kanji Stroke Animation */
@@ -45,29 +108,74 @@ body {
   height: 100%;
 }
 
-.kanji-svg-container path {
-  fill: none;
-  stroke: #1e293b; /* slate-800 */
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-
-  /* Tạo hiệu ứng vẽ bằng cách set dasharray lớn và di chuyển offset */
-  stroke-dasharray: 500;
-  stroke-dashoffset: 500;
-
-  /* Mỗi nét vẽ kéo dài 1.5s, animation-delay = số nét * 0.8s */
-  animation: draw-kanji 1.5s ease-out forwards;
-  animation-delay: calc(var(--stroke-index, 0) * 0.8s);
+.kanji-svg-guide svg {
+  width: 100%;
+  height: 100%;
 }
 
-/* Ẩn các con số đếm thứ tự nét lộn xộn trong SVG gốc */
+.kanji-svg-guide path {
+  fill: none;
+  stroke: oklch(0.88 0.01 85);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.kanji-svg-guide text {
+  display: none;
+}
+
+.kanji-svg-container path {
+  fill: none;
+  stroke: var(--color-ink-1);
+  stroke-width: 3.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .kanji-svg-container text {
   display: none;
 }
 
-@keyframes draw-kanji {
-  to {
-    stroke-dashoffset: 0;
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+/* Custom Subtle Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(0.82 0.01 85);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.68 0.01 85);
+}
+
+/* Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -5,11 +5,27 @@ Tất cả những thay đổi, cập nhật quan trọng của dự án sẽ đ
 ## [Giai đoạn 2: Màn Hình Học Tập (Lessons & Reviews)]
 
 ### Đã làm (Completed)
+- **Nâng cấp toàn diện UI/UX & Hệ thống Thiết kế (Japanese Editorial & Tactile Craft)**:
+  - **Khóa Design System (`DESIGN.md` & `index.css`)**: Bổ sung file `DESIGN.md` tại gốc dự án và chuẩn hóa hệ thống Design Tokens trong `index.css` (bảng màu giấy Washi ấm `--color-paper-*`, mực đen Sumi `--color-ink-*`, điểm nhấn Đỏ son Cinnabar `--color-accent-*`, Vàng kim `--color-gold-1`, Ngọc lục bảo `--color-emerald-1`, lưới tập viết `.kanji-practice-grid`, hiệu ứng kính mờ `.glass-panel` và hỗ trợ `prefers-reduced-motion`).
+  - **Kiến trúc Layout dùng chung (`AppShell.tsx` & `Sidebar.tsx`)**: Gom các trang Workbench (`Dashboard`, `KanjiDictionary`, `DeckManager`, `AdminKanjiManager`) vào `AppShell` với `<Outlet />`, giữ nguyên trạng thái `Sidebar` khi chuyển trang, tích hợp thanh trượt tab đang chọn bằng `framer-motion` (`layoutId`), thẻ nhắc ôn tập nhanh trên Sidebar, cùng Header & Bottom Navigation Bar responsive cho thiết bị di động. Dọn dẹp các component cũ không còn sử dụng (`Navbar.tsx`, `PrototypeSwitcher.tsx`, `Flashcard.tsx`).
+  - **Bộ UI & Motion Primitives mới**:
+    - `Toast.tsx`: Hệ thống thông báo nổi có hiệu ứng vật lý lò xo (Spring) và kính mờ, thay thế hoàn toàn `window.alert()` và `window.confirm()` trên toàn ứng dụng.
+    - `AnimatedNumber.tsx`: Bộ đếm số chạy mượt (`useSpring` + `tabular-nums`) cho thống kê tiến độ, số từ cần ôn tập và số lượng huy hiệu.
+    - `Confetti.tsx`: Hiệu ứng pháo giấy chúc mừng khi hoàn thành phiên Học từ mới hoặc Ôn tập SRS.
+  - **Đồng bộ hóa toàn bộ 7 màn hình**:
+    - `Login.tsx` & `Signup.tsx`: Thiết kế lại theo phong cách Japanese Editorial với chữ Hán chìm cỡ lớn, form thẻ nổi trên nền lưới giấy Washi và chỉ báo độ mạnh mật khẩu trực quan theo thời gian thực.
+    - `Dashboard.tsx`, `BadgeShowcase.tsx` & `DeckCard.tsx`: Khắc phục các class CSS bị thiếu trong `BadgeShowcase`, làm mới thẻ cảnh báo ôn tập SRS, thanh tiến độ 3 màu, hiệu ứng nhấc thẻ mượt mà và Modal tạo/xóa bộ bài có chuyển động Spring.
+    - `KanjiDictionary.tsx`, `KanjiStrokeDraw.tsx`, `KanjiService.java` & `HandwritingPad.tsx`:
+      - Đồng bộ thanh tìm kiếm, nút xóa nhanh, bảng vẽ nhận diện chữ Hán và Modal chi tiết chữ Hán với lưới chữ thập luyện viết.
+      - Nâng cấp `KanjiStrokeDraw.tsx` sang cơ chế vẽ từng nét theo thời gian thực bằng `requestAnimationFrame` (60fps) tính chính xác độ dài đường cong SVG (`path.getTotalLength()`), kèm hiệu ứng đầu bút lông đỏ son di chuyển mượt theo nét chữ, bộ đếm `Nét X / Y`, tùy chỉnh tốc độ viết và lọc bỏ phần khai báo `<!DOCTYPE ... ]>` thừa của KanjiVG.
+      - Khắc phục triệt để lỗi cuộn ở cuối danh sách Hán tự (`/kanji`) bị cắt mất nửa hàng cuối (`今 休 何 先 生`) và giật thanh cuộn: thay thế `VirtuosoGrid` (vốn xung đột với thuộc tính `gap-5` của CSS Grid khi tính chiều cao ảo) bằng lưới CSS Grid tự nhiên kết hợp `IntersectionObserver` (`PAGE_SIZE = 30`) trong `KanjiDictionary.tsx` và cố định thứ tự sắp xếp `Sort.by(Sort.Direction.ASC, "id")` trong `KanjiService.java`.
+    - `LessonSession.tsx` & `ReviewSession.tsx`: Nâng cấp không gian phòng học Zen tối màu, lưới chữ thập trên mặt thẻ Kanji, đồng bộ phím tắt (`Space` cho cả lật thẻ và tiếp tục trong `LessonSession`, `Enter` và `Esc` trong `ReviewSession`) và hiệu ứng pháo giấy khi hoàn thành.
+    - `DeckManager.tsx` & `AdminKanjiManager.tsx`: Bổ sung nút "Học bộ bài này" nhanh, chuyển động thêm/xóa từ vựng mượt mà (`AnimatePresence`), thông báo Toast và Modal xác nhận xóa an toàn.
 - **Chuẩn bị Deploy (Cấu hình an toàn cho Production & Docker Compose)**:
   - Đổi `spring.jpa.hibernate.ddl-auto` từ `create` sang `update`: khởi động lại backend không còn xóa sạch dữ liệu người dùng.
   - Chuyển thông tin database, `jwt.secret`, CORS (`CORS_ALLOWED_ORIGINS`) và tài khoản admin sang biến môi trường (có giá trị mặc định cho local). Logic xử lý JWT giữ nguyên.
   - Thêm `application-prod.properties` (bật bằng `SPRING_PROFILES_ACTIVE=prod`): bắt buộc khai báo `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, thiếu biến nào là app báo lỗi ngay khi khởi động; tắt log SQL.
-  - `DataSeeder` đọc tài khoản admin từ cấu hình và chỉ tạo tài khoản demo `user1`/`user2` khi `app.seed.demo-users=true` (tắt ở production).
+  - `DataSeeder` đọc tài khoản admin từ cấu hình (kiểm tra khớp định dạng mật khẩu tối thiểu 8 ký tự có chữ và số) và chỉ tạo tài khoản demo `user1`/`user2` (mật khẩu `user1234`) khi `app.seed.demo-users=true` (tắt ở production).
   - Cập nhật `api.ts` ở Frontend linh hoạt nhận `VITE_API_BASE_URL` hoặc gọi qua Nginx reverse proxy khi build production.
   - Bổ sung `Dockerfile` cho Backend & Frontend, `nginx.conf`, `.env.example` và `docker-compose.prod.yml` để triển khai toàn bộ hệ thống trên AWS EC2 bằng 1 lệnh.
 - **Cập nhật & Tối ưu hóa Agent Skills**:

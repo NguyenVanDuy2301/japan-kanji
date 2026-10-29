@@ -1,14 +1,12 @@
-/* Hallmark · component: DeckCard · genre: modern-minimal · theme: catalog
- * states: default · hover · focus-visible · active
- * contrast: pass
- */
 import {
   BookOpen,
   Folder,
   Layers,
   MoreVertical,
   ChevronRight,
+  Bookmark,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { DeckResponse } from "../../services/deck.service";
 import { useState, useRef, useEffect } from "react";
 
@@ -38,76 +36,105 @@ export default function DeckCard({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const iconBadgeStyle =
+    type === "official"
+      ? "bg-[var(--color-accent-soft)] text-[var(--color-accent-1)] border-[var(--color-accent-1)]/20"
+      : type === "custom"
+        ? "bg-[var(--color-paper-2)] text-[var(--color-ink-1)] border-[var(--color-border-subtle)]"
+        : "bg-amber-50 text-amber-700 border-amber-200";
+
   return (
-    <div className="group relative bg-[var(--color-paper-1)] border border-[oklch(0.90_0.01_250)] p-4 sm:p-5 hover:shadow-md transition-all duration-300 flex items-center justify-between gap-4 focus-within:ring-2 focus-within:ring-[var(--color-accent-1)] focus-within:ring-offset-2">
+    <motion.div
+      whileHover={{ y: -2 }}
+      transition={{ type: "spring", stiffness: 360, damping: 26 }}
+      onClick={() => onStudy?.()}
+      className="group relative bg-[var(--color-paper-1)] rounded-xl border border-[var(--color-border-subtle)] hover:border-[var(--color-border-strong)] p-5 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-colors duration-200 flex items-center justify-between gap-4 cursor-pointer focus-within:ring-2 focus-within:ring-[var(--color-accent-1)] focus-within:ring-offset-2"
+    >
       {/* Left side: Icon + Text */}
       <div className="flex items-center gap-4 flex-1 min-w-0">
         <div
-          className={`p-3 ${type === "official" ? "bg-[oklch(0.95_0.10_25)] text-[var(--color-accent-1)]" : type === "custom" ? "bg-[var(--color-paper-3)] text-[var(--color-ink-1)]" : "bg-[oklch(0.95_0.05_250)] text-[var(--color-ink-1)]"} transition-transform group-hover:scale-105 shrink-0`}
+          className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-transform duration-200 group-hover:scale-105 shrink-0 ${iconBadgeStyle}`}
         >
-          {type === "official" ? <BookOpen size={24} /> : <Folder size={24} />}
+          {type === "official" ? (
+            <BookOpen size={22} />
+          ) : type === "saved" ? (
+            <Bookmark size={22} />
+          ) : (
+            <Folder size={22} />
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="text-base font-bold text-[var(--color-ink-1)] group-hover:text-[var(--color-accent-1)] transition-colors truncate">
-            {deck.title}
-          </h3>
-          <div className="flex items-center gap-1.5 text-xs text-[var(--color-ink-2)] mt-1 truncate">
-            <Layers size={14} className="shrink-0" />
-            <span className="font-medium shrink-0">
-              {deck.vocabularyCount} từ
-            </span>
-            <span className="opacity-40 mx-1 shrink-0">•</span>
-            <span className="truncate">
-              {deck.description || "Chưa có mô tả"}
-            </span>
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-bold text-[var(--color-ink-1)] group-hover:text-[var(--color-accent-1)] transition-colors truncate">
+              {deck.title}
+            </h3>
+          </div>
+          <p className="text-xs text-[var(--color-ink-2)] mt-0.5 truncate">
+            {deck.description || "Bộ thẻ học từ vựng và Hán tự"}
+          </p>
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[var(--color-ink-2)] bg-[var(--color-paper-2)] px-2 py-0.5 rounded-md mt-2">
+            <Layers
+              size={12}
+              className="text-[var(--color-accent-1)] shrink-0"
+            />
+            <span className="tabular-nums">{deck.vocabularyCount} từ vựng</span>
           </div>
         </div>
       </div>
 
       {/* Right side: Button + Actions */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1.5 shrink-0">
         <button
           onClick={(e) => {
             e.stopPropagation();
             onStudy?.();
           }}
-          className="bg-[var(--color-paper-2)] border border-[oklch(0.90_0.01_250)] text-[var(--color-ink-1)] font-bold px-4 py-2 transition-all duration-200 flex items-center justify-center group/btn shadow-sm hover:shadow-md hover:bg-[var(--color-accent-1)] hover:text-[var(--color-paper-1)] hover:border-[var(--color-accent-1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent-1)] active:scale-[0.98] cursor-pointer text-sm"
+          className="bg-[var(--color-ink-1)] group-hover:bg-[var(--color-accent-1)] text-[var(--color-paper-1)] font-semibold px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 shadow-xs active:scale-[0.97] cursor-pointer text-xs"
         >
-          Học
+          <span>Vào học</span>
           <ChevronRight
-            size={16}
-            className="ml-1 transform group-hover/btn:translate-x-0.5 transition-transform"
+            size={15}
+            className="transform group-hover:translate-x-0.5 transition-transform"
           />
         </button>
 
         {actions && (
-          <div className="relative flex items-center" ref={menuRef}>
+          <div
+            className="relative flex items-center"
+            ref={menuRef}
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsMenuOpen(!isMenuOpen);
-              }}
-              className="p-2 text-[var(--color-ink-2)] transition-colors hover:bg-[var(--color-paper-2)] hover:text-[var(--color-ink-1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink-2)] active:scale-95 cursor-pointer"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-lg text-[var(--color-ink-2)] transition-colors hover:bg-[var(--color-paper-2)] hover:text-[var(--color-ink-1)] active:scale-95 cursor-pointer"
               aria-label="Menu tuỳ chọn"
               aria-expanded={isMenuOpen}
             >
-              <MoreVertical size={20} />
+              <MoreVertical size={18} />
             </button>
 
-            {isMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--color-paper-1)]/95 backdrop-blur-xl shadow-xl border border-[oklch(0.90_0.01_250)] z-20 animate-in fade-in zoom-in duration-200">
-                <div
-                  className="flex flex-col p-1"
-                  onClick={() => setIsMenuOpen(false)}
+            <AnimatePresence>
+              {isMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 w-48 glass-panel bg-[var(--color-paper-1)]/95 rounded-xl shadow-[var(--shadow-elevated)] border border-[var(--color-border-subtle)] z-20 overflow-hidden"
                 >
-                  {actions}
-                </div>
-              </div>
-            )}
+                  <div
+                    className="flex flex-col p-1.5"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {actions}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

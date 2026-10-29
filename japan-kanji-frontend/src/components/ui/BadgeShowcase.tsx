@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Medal, Star, Trophy, Award, Shield } from "lucide-react";
+import { Medal, Star, Trophy, Award, Shield, Sparkles } from "lucide-react";
 import type { BadgeResponse } from "../../types/badge.types";
 import { badgeService } from "../../services/badge.service";
+import { AnimatedNumber } from "./AnimatedNumber";
 
 const BadgeIcon = ({
   level,
@@ -12,32 +13,34 @@ const BadgeIcon = ({
   percentage: number;
 }) => {
   let Icon = Medal;
-  let colorClass = "text-gray-400 border-gray-400/20"; // default
+  let badgeStyle =
+    "bg-[var(--color-paper-3)] text-[var(--color-ink-2)] border-[var(--color-border-subtle)]";
 
   if (percentage === 10) {
     Icon = Star;
-    colorClass = "text-amber-600 border-amber-600/20"; // Bronze
+    badgeStyle =
+      "bg-amber-50 text-amber-700 border-amber-300 shadow-[0_4px_14px_-4px_rgba(217,119,6,0.25)]";
   } else if (percentage === 50) {
     Icon = Award;
-    colorClass = "text-slate-300 border-slate-300/20"; // Silver
+    badgeStyle =
+      "bg-slate-100 text-slate-700 border-slate-300 shadow-[0_4px_14px_-4px_rgba(71,85,105,0.25)]";
   } else if (percentage === 100) {
     Icon = Trophy;
-    colorClass = "text-yellow-400 border-yellow-400/20"; // Gold
+    badgeStyle =
+      "bg-amber-100/80 text-amber-600 border-amber-400 shadow-[0_4px_18px_-4px_rgba(245,158,11,0.35)]";
   }
 
   if (level === "N1" && percentage === 100) {
     Icon = Shield;
-    colorClass = "text-fuchsia-500 border-fuchsia-500/20 shadow-fuchsia-500/20";
+    badgeStyle =
+      "bg-[var(--color-accent-soft)] text-[var(--color-accent-1)] border-[var(--color-accent-1)]/40 shadow-[0_4px_18px_-4px_rgba(220,38,38,0.3)]";
   }
 
   return (
     <div
-      className={`p-4 rounded-full bg-surface-1 dark:bg-surface-3 border-2 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] ${colorClass}`}
+      className={`w-14 h-14 rounded-2xl border flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[-4deg] ${badgeStyle}`}
     >
-      <Icon
-        size={36}
-        className="drop-shadow-[0_0_12px_rgba(currentcolor,0.4)]"
-      />
+      <Icon size={28} />
     </div>
   );
 };
@@ -64,72 +67,97 @@ export const BadgeShowcase = () => {
 
   if (badges.length === 0) {
     return (
-      <div className="p-8 rounded-2xl bg-paper-1 dark:bg-surface-1 border border-border flex flex-col items-center justify-center text-center gap-3">
-        <div className="p-4 rounded-full bg-surface-2 dark:bg-surface-2 border border-border">
-          <Trophy className="text-gray-400 opacity-40" size={40} />
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-6 sm:p-7 rounded-2xl bg-[var(--color-paper-1)] border border-[var(--color-border-subtle)] shadow-[var(--shadow-card)] flex flex-col sm:flex-row items-center justify-between gap-4"
+      >
+        <div className="flex items-center gap-4 text-center sm:text-left flex-col sm:flex-row">
+          <div className="w-12 h-12 rounded-xl bg-[var(--color-paper-2)] border border-[var(--color-border-subtle)] flex items-center justify-center text-[var(--color-gold-1)] shrink-0">
+            <Trophy size={24} />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-[var(--color-ink-1)]">
+              Huy hiệu & Thành tựu JLPT
+            </h3>
+            <p className="text-sm text-[var(--color-ink-2)] mt-0.5">
+              Hoàn thành các mốc 10%, 50% và 100% từ vựng mỗi cấp độ JLPT để mở
+              khóa ấn chương danh dự.
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-content-1">
-            Huy hiệu & Thành tựu
-          </h3>
-          <p className="text-sm text-content-2 mt-1">
-            Chưa có huy hiệu nào. Hãy học thêm Kanji để sưu tầm nhé!
-          </p>
-        </div>
-      </div>
+        <span className="text-xs font-bold text-[var(--color-ink-3)] bg-[var(--color-paper-2)] border border-[var(--color-border-subtle)] px-3 py-1.5 rounded-full shrink-0">
+          0 huy hiệu đã mở
+        </span>
+      </motion.div>
     );
   }
 
   return (
-    <div className="p-6 md:p-8 rounded-2xl bg-paper-1 dark:bg-surface-1 border border-border flex flex-col gap-6 shadow-sm">
-      <div className="flex items-center justify-between">
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-6 sm:p-7 rounded-2xl bg-[var(--color-paper-1)] border border-[var(--color-border-subtle)] shadow-[var(--shadow-card)] flex flex-col gap-5"
+    >
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
-            <Award size={24} />
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-accent-soft)] text-[var(--color-accent-1)] flex items-center justify-center">
+            <Award size={22} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-content-1">
-              Bộ sưu tập Huy hiệu
+            <h3 className="text-lg font-bold text-[var(--color-ink-1)] leading-tight">
+              Bộ Sưu Tập Huy Hiệu
             </h3>
-            <p className="text-sm text-content-2">
-              Bạn đã mở khóa {badges.length} huy hiệu
+            <p className="text-xs text-[var(--color-ink-2)] mt-0.5">
+              Ấn chương ghi nhận cột mốc chinh phục Hán tự của bạn
             </p>
           </div>
         </div>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-paper-2)] border border-[var(--color-border-subtle)] text-xs font-bold text-[var(--color-ink-1)]">
+          <Sparkles size={14} className="text-[var(--color-gold-1)]" />
+          <span>Đã mở khóa</span>
+          <AnimatedNumber
+            value={badges.length}
+            className="text-[var(--color-accent-1)]"
+          />
+        </div>
       </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {badges.map((badge, idx) => (
           <motion.div
             key={badge.badgeType}
-            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            initial={{ opacity: 0, scale: 0.92, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{
-              delay: idx * 0.1,
+              delay: idx * 0.06,
               type: "spring",
-              stiffness: 200,
-              damping: 15,
+              stiffness: 260,
+              damping: 22,
             }}
-            whileHover={{ scale: 1.05, y: -5 }}
-            className="group relative flex flex-col items-center text-center p-5 rounded-2xl bg-paper-2 dark:bg-surface-2 border border-border overflow-hidden cursor-default shadow-sm hover:shadow-md transition-all duration-300"
+            whileHover={{ y: -4 }}
+            className="group relative flex flex-col items-center text-center p-4 rounded-xl bg-[var(--color-paper-2)]/70 hover:bg-[var(--color-paper-1)] border border-[var(--color-border-subtle)] hover:border-[var(--color-border-strong)] overflow-hidden cursor-default shadow-xs hover:shadow-[var(--shadow-card)] transition-colors duration-200"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <span className="absolute top-2.5 right-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--color-paper-1)] border border-[var(--color-border-subtle)] text-[var(--color-ink-2)]">
+              {badge.jlptLevel}
+            </span>
 
             <BadgeIcon
               level={badge.jlptLevel}
               percentage={badge.requiredPercentage}
             />
 
-            <div className="mt-4 z-10">
-              <h4 className="font-bold text-sm text-content-1 group-hover:text-primary transition-colors">
+            <div className="mt-3.5 z-10">
+              <h4 className="font-bold text-sm text-[var(--color-ink-1)] group-hover:text-[var(--color-accent-1)] transition-colors">
                 {badge.title}
               </h4>
-              <p className="text-[11px] text-content-2 mt-1 leading-tight">
+              <p className="text-xs text-[var(--color-ink-2)] mt-1 leading-snug">
                 {badge.description}
               </p>
             </div>
           </motion.div>
         ))}
       </div>
-    </div>
+    </motion.section>
   );
 };

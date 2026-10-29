@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, X } from "lucide-react";
+import { ArrowLeft, CheckCircle2, X, Eye } from "lucide-react";
 import { studyService } from "../services/study.service";
 import type { VocabularyResponse } from "../types/vocabulary.types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "../components/ui/Skeleton";
+import { Confetti } from "../components/ui/Confetti";
 import clsx from "clsx";
 
 export default function ReviewSession() {
@@ -14,14 +15,12 @@ export default function ReviewSession() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFinished, setIsFinished] = useState(false);
 
-  // Hybrid State
   const [inputValue, setInputValue] = useState("");
   const [wrongCount, setWrongCount] = useState(0);
   const [cardState, setCardState] = useState<
     "inputting" | "correct" | "failed" | "submitting"
   >("inputting");
 
-  // Animation Triggers
   const [shakeKey, setShakeKey] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -57,6 +56,16 @@ export default function ReviewSession() {
     }
   }, [cardState]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        navigate("/");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [navigate]);
+
   const normalizeString = (str: string) => str.toLowerCase().trim();
 
   const handleInputSubmit = (e: React.FormEvent) => {
@@ -70,7 +79,8 @@ export default function ReviewSession() {
     const isCorrect =
       answer === normalizeString(currentVocab.onyomi || "") ||
       answer === normalizeString(currentVocab.kunyomi || "") ||
-      answer === normalizeString(currentVocab.meaning || "");
+      answer === normalizeString(currentVocab.meaning || "") ||
+      answer === normalizeString(currentVocab.hanViet || "");
 
     if (isCorrect) {
       setCardState("correct");
@@ -116,12 +126,12 @@ export default function ReviewSession() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col items-center justify-center p-4">
-        <div className="max-w-2xl w-full flex-1 flex flex-col min-h-[600px] bg-white rounded-3xl shadow-xl p-8 lg:p-12 border border-neutral-200">
-          <Skeleton className="h-6 w-32 mb-8 mx-auto" />
+        <div className="max-w-md w-full flex flex-col min-h-[540px] bg-[var(--color-paper-1)] rounded-2xl shadow-[var(--shadow-elevated)] p-8 border border-[var(--color-border-subtle)]">
+          <Skeleton className="h-5 w-32 mb-8 mx-auto" />
           <div className="flex-1 flex items-center justify-center">
-            <Skeleton className="h-32 w-32 md:h-48 md:w-48 rounded-2xl" />
+            <Skeleton className="h-36 w-36 rounded-2xl" />
           </div>
-          <Skeleton className="h-16 w-full rounded-xl mt-8" />
+          <Skeleton className="h-14 w-full rounded-xl mt-8" />
         </div>
       </div>
     );
@@ -129,26 +139,34 @@ export default function ReviewSession() {
 
   if (isFinished || vocabularies.length === 0) {
     return (
-      <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-[var(--color-paper-1)] rounded-3xl p-10 text-center shadow-2xl border border-[oklch(0.90_0.01_250)]">
-          <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 size={32} className="text-green-500" />
+      <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        {vocabularies.length > 0 && <Confetti />}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 320, damping: 24 }}
+          className="max-w-md w-full bg-[var(--color-paper-1)] rounded-2xl p-10 text-center shadow-[var(--shadow-elevated)] border border-[var(--color-border-subtle)] relative z-10"
+        >
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 size={34} className="text-[var(--color-emerald-1)]" />
           </div>
-          <h2 className="text-2xl font-bold text-[var(--color-ink-1)] mb-2">
-            Đã hoàn tất
-          </h2>
-          <p className="text-[var(--color-ink-2)] mb-8">
+          <h2 className="font-serif text-2xl font-bold text-[var(--color-ink-1)] mb-2">
             {vocabularies.length === 0
-              ? "Bạn không có chữ Hán nào cần ôn tập hôm nay."
-              : "Hoàn thành xuất sắc phiên ôn tập!"}
+              ? "Không có từ đến hạn"
+              : "Hoàn Tất Phiên Ôn Tập!"}
+          </h2>
+          <p className="text-sm text-[var(--color-ink-2)] mb-8">
+            {vocabularies.length === 0
+              ? "Bạn không có chữ Hán nào cần ôn tập lúc này. Hãy nghỉ ngơi hoặc học thêm từ mới nhé."
+              : `Bạn đã hoàn thành ôn tập ${vocabularies.length} chữ Hán theo lịch SM-2 hôm nay!`}
           </p>
           <button
             onClick={() => navigate("/")}
-            className="w-full px-6 py-4 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] text-[var(--color-ink-inverse-1)] text-sm font-bold rounded-xl transition-colors"
+            className="w-full px-6 py-3.5 bg-[var(--color-ink-1)] hover:bg-[var(--color-accent-1)] text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
           >
             Quay về Tổng quan
           </button>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -163,61 +181,66 @@ export default function ReviewSession() {
   return (
     <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col font-sans">
       {/* Header */}
-      <header className="p-6 flex items-center justify-between">
+      <header className="px-6 py-5 flex items-center justify-between max-w-4xl w-full mx-auto">
         <button
           onClick={() => navigate("/")}
-          className="p-2 text-[var(--color-ink-inverse-2)] hover:text-white transition-colors"
+          className="p-2.5 rounded-xl text-[var(--color-ink-inverse-2)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          title="Quay lại Tổng quan"
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft size={20} />
         </button>
         <div className="flex-1 max-w-md mx-6 flex items-center gap-4">
-          <div className="h-1.5 flex-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-green-500 transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            ></div>
+          <div className="h-2 flex-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-[var(--color-emerald-1)]"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ type: "spring", stiffness: 200, damping: 26 }}
+            />
           </div>
-          <span className="text-xs font-bold text-[var(--color-ink-inverse-2)] tracking-wider">
+          <span className="text-xs font-bold text-[var(--color-ink-inverse-2)] tabular-nums">
             Còn {vocabularies.length - currentIndex}
           </span>
         </div>
-        <div className="w-10"></div>
+        <div className="w-10" />
       </header>
 
       {/* Main Content Area */}
-      <main
-        className="flex-1 flex flex-col items-center justify-center p-4 cursor-pointer"
-        onClick={() => navigate("/")}
-      >
+      <main className="flex-1 flex flex-col items-center justify-center p-4">
         <motion.div
-          layout
-          onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-[440px] min-h-[560px] bg-[var(--color-paper-1)] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-[oklch(0.90_0.01_250)] cursor-default"
+          key={currentVocab.id}
+          initial={{ opacity: 0, y: 14, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: "spring", stiffness: 340, damping: 28 }}
+          className="w-full max-w-[440px] min-h-[540px] bg-[var(--color-paper-1)] rounded-2xl shadow-[var(--shadow-elevated)] overflow-hidden flex flex-col border border-[var(--color-border-subtle)]"
         >
-          {/* Top Wrapper for Kanji and Details */}
           <div className="flex-1 flex flex-col justify-center">
             {/* Top: Kanji Display */}
             <motion.div
               layout
-              className="p-10 flex flex-col items-center text-center bg-[var(--color-paper-1)] relative z-10"
+              className={clsx(
+                "p-8 flex flex-col items-center text-center relative z-10",
+                !isAnswerRevealed && "kanji-practice-grid flex-1 justify-center"
+              )}
             >
-              <h3
+              <span
                 className={clsx(
-                  "text-[10px] font-bold uppercase tracking-[0.2em] mb-4 transition-colors",
+                  "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold mb-3 transition-colors",
                   wrongCount > 0 && !isAnswerRevealed
-                    ? "text-red-500 animate-pulse"
-                    : "text-[var(--color-accent-1)]"
+                    ? "bg-[var(--color-accent-soft)] text-[var(--color-accent-1)]"
+                    : "bg-[var(--color-paper-2)] text-[var(--color-ink-2)] border border-[var(--color-border-subtle)]"
                 )}
               >
                 {wrongCount > 0 && !isAnswerRevealed
-                  ? `Sai ${wrongCount}/3 lần`
-                  : "Ôn Tập Kanji"}
-              </h3>
+                  ? `Nhập chưa đúng (${wrongCount}/3 lần)`
+                  : "Ôn tập chủ động SRS"}
+              </span>
+
               <motion.h1
                 layout="position"
                 className={clsx(
-                  "font-serif font-bold text-[var(--color-ink-1)] leading-none transition-all duration-500",
-                  isAnswerRevealed ? "text-[80px]" : "text-[140px] my-6"
+                  "font-serif font-bold text-[var(--color-ink-1)] leading-none transition-all duration-300",
+                  isAnswerRevealed ? "text-[80px] my-2" : "text-[136px] my-6"
                 )}
               >
                 {currentVocab.kanji}
@@ -229,62 +252,62 @@ export default function ReviewSession() {
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className={clsx(
-                      "absolute top-6 right-6",
+                      "absolute top-5 right-5 p-2 rounded-full",
                       cardState === "correct"
-                        ? "text-green-500"
-                        : "text-red-500"
+                        ? "bg-emerald-50 text-[var(--color-emerald-1)]"
+                        : "bg-[var(--color-accent-soft)] text-[var(--color-accent-1)]"
                     )}
                   >
                     {cardState === "correct" ? (
-                      <CheckCircle2 size={32} />
+                      <CheckCircle2 size={24} />
                     ) : (
-                      <X size={32} />
+                      <X size={24} />
                     )}
                   </motion.div>
                 )}
               </AnimatePresence>
             </motion.div>
 
-            {/* Middle: Details (Snap up on reveal) */}
+            {/* Middle: Revealed Details */}
             <AnimatePresence>
               {isAnswerRevealed && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, height: "auto", scale: 1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  className="px-10 pb-10 text-center relative z-0 origin-top"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  transition={{ type: "spring", stiffness: 360, damping: 30 }}
+                  className="px-8 pb-8 text-center relative z-0 origin-top"
                 >
-                  <div className="space-y-6 pt-4 border-t border-[oklch(0.95_0.01_250)]">
+                  <div className="space-y-5 pt-5 hairline-t">
                     <div>
-                      <p className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
-                        Ý nghĩa
+                      <p className="text-xs font-semibold text-[var(--color-ink-3)] mb-1">
+                        Nghĩa tiếng Việt
                       </p>
                       <p className="text-2xl font-bold text-[var(--color-ink-1)]">
                         {currentVocab.meaning}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
+                      <p className="text-xs font-semibold text-[var(--color-ink-3)] mb-1">
                         Âm Hán Việt
                       </p>
-                      <p className="text-lg font-serif text-[var(--color-accent-1)]">
-                        {currentVocab.hanViet}
+                      <p className="text-xl font-serif font-bold text-[var(--color-accent-1)]">
+                        {currentVocab.hanViet || "—"}
                       </p>
                     </div>
-                    <div className="flex justify-center gap-10 pt-4 hairline-t text-left">
-                      <div>
-                        <span className="block text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
-                          Onyomi
+                    <div className="grid grid-cols-2 gap-3 pt-2 text-left">
+                      <div className="p-3 rounded-xl bg-[var(--color-paper-2)] border border-[var(--color-border-subtle)]">
+                        <span className="block text-[11px] font-semibold text-[var(--color-ink-2)] mb-0.5">
+                          Âm Onyomi
                         </span>
-                        <span className="font-medium text-[var(--color-ink-1)]">
+                        <span className="font-bold text-sm text-[var(--color-ink-1)]">
                           {currentVocab.onyomi || "—"}
                         </span>
                       </div>
-                      <div>
-                        <span className="block text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
-                          Kunyomi
+                      <div className="p-3 rounded-xl bg-[var(--color-paper-2)] border border-[var(--color-border-subtle)]">
+                        <span className="block text-[11px] font-semibold text-[var(--color-ink-2)] mb-0.5">
+                          Âm Kunyomi
                         </span>
-                        <span className="font-medium text-[var(--color-ink-1)]">
+                        <span className="font-bold text-sm text-[var(--color-ink-1)]">
                           {currentVocab.kunyomi || "—"}
                         </span>
                       </div>
@@ -295,26 +318,26 @@ export default function ReviewSession() {
             </AnimatePresence>
           </div>
 
-          {/* Bottom: Controls */}
-          <div className="p-6 bg-[oklch(0.97_0.01_250)] border-t border-[oklch(0.90_0.01_250)] mt-auto">
+          {/* Bottom Controls */}
+          <div className="p-5 bg-[var(--color-paper-2)] hairline-t mt-auto">
             <AnimatePresence mode="wait">
               {!isAnswerRevealed ? (
                 <motion.div
                   key="input-mode"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
                 >
                   <form onSubmit={handleInputSubmit} className="relative">
                     <motion.div
                       key={shakeKey}
                       initial={false}
-                      animate={shakeKey > 0 ? { x: [-10, 10, -10, 10, 0] } : {}}
+                      animate={shakeKey > 0 ? { x: [-8, 8, -8, 8, 0] } : {}}
                       transition={{
                         type: "spring",
                         stiffness: 500,
-                        damping: 10,
+                        damping: 12,
                       }}
                     >
                       <input
@@ -322,12 +345,12 @@ export default function ReviewSession() {
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="Nhập cách đọc / ý nghĩa..."
+                        placeholder="Nhập nghĩa, âm Hán Việt hoặc cách đọc..."
                         className={clsx(
-                          "w-full bg-white text-[var(--color-ink-1)] border-2 rounded-xl focus:outline-none py-4 px-5 text-base transition-colors font-medium shadow-sm",
+                          "w-full bg-[var(--color-paper-1)] text-[var(--color-ink-1)] border rounded-xl focus:outline-none py-3.5 px-4 text-sm transition-colors font-medium shadow-2xs",
                           wrongCount > 0
-                            ? "border-red-400 bg-red-50 text-red-900 placeholder:text-red-300"
-                            : "border-[oklch(0.90_0.01_250)] focus:border-[var(--color-accent-1)]"
+                            ? "border-[var(--color-accent-1)] bg-[var(--color-accent-soft)] text-[var(--color-accent-1)]"
+                            : "border-[var(--color-border-strong)] focus:border-[var(--color-ink-1)]"
                         )}
                       />
                     </motion.div>
@@ -335,54 +358,55 @@ export default function ReviewSession() {
                   <button
                     type="button"
                     onClick={handleShowAnswer}
-                    className="mt-4 text-[var(--color-ink-2)] hover:text-[var(--color-ink-1)] text-xs font-bold uppercase tracking-wider transition-colors w-full text-center"
+                    className="mt-3.5 text-[var(--color-ink-2)] hover:text-[var(--color-ink-1)] text-xs font-semibold transition-colors w-full flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    Không nhớ? Xem đáp án ngay
+                    <Eye size={14} />
+                    <span>Chưa nhớ ra? Xem đáp án ngay</span>
                   </button>
                 </motion.div>
               ) : (
                 <motion.div
                   key="quality-mode"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="flex flex-col gap-4"
+                  className="flex flex-col gap-3"
                 >
                   {cardState === "correct" ? (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2.5">
                       <button
                         onClick={() => handleSubmitQuality(0)}
-                        className="py-3 bg-white text-[var(--color-ink-1)] text-sm font-bold border border-[oklch(0.90_0.01_250)] rounded-xl hover:bg-neutral-50 transition-colors shadow-sm"
+                        className="py-2.5 bg-[var(--color-paper-1)] text-[var(--color-ink-1)] text-xs font-bold border border-[var(--color-border-subtle)] rounded-xl hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer"
                       >
-                        Lại (Hard)
+                        Học lại (0)
                       </button>
                       <button
                         onClick={() => handleSubmitQuality(3)}
-                        className="py-3 bg-white text-[var(--color-ink-1)] text-sm font-bold border border-[oklch(0.90_0.01_250)] rounded-xl hover:bg-neutral-50 transition-colors shadow-sm"
+                        className="py-2.5 bg-[var(--color-paper-1)] text-[var(--color-ink-1)] text-xs font-bold border border-[var(--color-border-subtle)] rounded-xl hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer"
                       >
-                        Khó
+                        Hơi khó (3)
                       </button>
                       <button
                         ref={buttonGoodRef}
                         onClick={() => handleSubmitQuality(4)}
-                        className="col-span-2 py-4 bg-green-500 hover:bg-green-600 text-white font-bold text-base rounded-xl transition-colors shadow-[0_0_15px_rgba(34,197,94,0.3)] focus:outline-none focus:ring-4 focus:ring-green-500/50"
+                        className="col-span-2 py-3.5 bg-[var(--color-emerald-1)] hover:opacity-95 text-white font-semibold text-sm rounded-xl transition-opacity shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-emerald-1)] focus:ring-offset-2 cursor-pointer"
                       >
-                        Tốt (Enter)
+                        Nhớ tốt — Tiếp tục (Enter)
                       </button>
                       <button
                         onClick={() => handleSubmitQuality(5)}
-                        className="col-span-2 py-3 bg-white text-blue-600 text-sm font-bold border border-[oklch(0.90_0.01_250)] rounded-xl hover:bg-neutral-50 transition-colors shadow-sm"
+                        className="col-span-2 py-2.5 bg-[var(--color-paper-1)] text-[var(--color-ink-1)] text-xs font-bold border border-[var(--color-border-subtle)] rounded-xl hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer"
                       >
-                        Rất Dễ
+                        Quá dễ — Tăng quãng nghỉ (5)
                       </button>
                     </div>
                   ) : (
                     <button
                       ref={buttonAgainRef}
                       onClick={() => handleSubmitQuality(0)}
-                      className="w-full py-5 bg-red-500 hover:bg-red-600 text-white font-bold text-base rounded-xl transition-colors shadow-[0_0_15px_rgba(239,68,68,0.3)] focus:outline-none focus:ring-4 focus:ring-red-500/50"
+                      className="w-full py-3.5 bg-[var(--color-accent-1)] hover:bg-[var(--color-accent-2)] text-white font-semibold text-sm rounded-xl transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-1)] focus:ring-offset-2 cursor-pointer"
                     >
-                      Ôn Lại Lần Sau (Enter)
+                      Ôn lại vào ngày mai (Enter)
                     </button>
                   )}
                 </motion.div>

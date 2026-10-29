@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { FormEvent, Dispatch, SetStateAction, ChangeEvent } from "react";
-import { BookOpen, Loader2 } from "lucide-react";
+import { Loader2, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { authService } from "../services/auth.service";
 import { useAuth } from "../context/AuthContext";
 
@@ -17,6 +18,9 @@ export default function Signup() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const hasMinLength = password.length >= 8;
+  const hasLetterAndNumber = /^(?=.*[A-Za-z])(?=.*\d)/.test(password);
+
   const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
     if (!username || !email || !password || !confirmPassword) {
@@ -25,7 +29,7 @@ export default function Signup() {
     }
 
     if (password !== confirmPassword) {
-      setError("Mật khẩu không khớp.");
+      setError("Mật khẩu xác nhận không khớp.");
       return;
     }
 
@@ -45,9 +49,8 @@ export default function Signup() {
         password,
       });
       login(response.token, response.username, response.userId, response.role);
-      navigate("/"); // Redirect to home/dashboard
+      navigate("/");
     } catch (err: any) {
-      // Show persistent error
       if (err.response && err.response.data) {
         const data = err.response.data;
         if (typeof data === "string") {
@@ -55,7 +58,6 @@ export default function Signup() {
         } else if (data.error) {
           setError(data.error);
         } else {
-          // If it's a validation error object from Spring, get the first value
           const firstError = Object.values(data)[0] as string;
           setError(
             firstError || "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại."
@@ -77,47 +79,84 @@ export default function Signup() {
     };
 
   return (
-    <div className="min-h-screen flex bg-white">
-      {/* Left Panel - Image */}
-      <div className="hidden lg:flex w-1/2 bg-neutral-900 relative items-center justify-center overflow-hidden">
+    <div className="min-h-screen flex bg-[var(--color-paper-2)] font-sans">
+      {/* Left Panel - Japanese Editorial Showcase */}
+      <div className="hidden lg:flex w-1/2 bg-[var(--color-surface-1)] relative items-center justify-center overflow-hidden p-16">
         <img
           src="https://images.unsplash.com/photo-1522850959516-58f958dde2c1?q=80&w=2070&auto=format&fit=crop"
           alt="Tokyo Japan"
-          className="absolute inset-0 w-full h-full object-cover opacity-50"
+          className="absolute inset-0 w-full h-full object-cover opacity-35 mix-blend-luminosity"
         />
-        <div className="relative z-10 p-12 text-center text-white max-w-lg">
-          <BookOpen size={48} className="mx-auto mb-6 text-red-400" />
-          <h2 className="text-4xl font-bold tracking-tight mb-4">
-            Bắt Đầu Hành Trình
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-surface-3)] via-[var(--color-surface-1)]/60 to-transparent" />
+
+        <span
+          aria-hidden="true"
+          className="absolute -right-12 -bottom-16 font-serif text-[320px] font-bold text-white/[0.04] leading-none select-none pointer-events-none"
+        >
+          道
+        </span>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative z-10 max-w-md text-left"
+        >
+          <div className="inline-flex items-center gap-3 mb-8">
+            <div className="w-11 h-11 rounded-xl bg-[var(--color-accent-1)] text-white flex items-center justify-center font-serif font-bold text-2xl shadow-lg">
+              漢
+            </div>
+            <span className="text-xl font-bold tracking-tight text-[var(--color-ink-inverse-1)]">
+              Japan Kanji
+            </span>
+          </div>
+
+          <h2 className="font-serif text-4xl xl:text-5xl font-bold tracking-tight text-[var(--color-ink-inverse-1)] leading-[1.15] mb-5">
+            Khởi đầu hành trình Hán tự.
           </h2>
-          <p className="text-lg text-neutral-300">
-            Tham gia cùng hàng nghìn học viên chinh phục Kanji với hệ thống lặp
-            lại ngắt quãng. Tạo tài khoản miễn phí ngay hôm nay.
+          <p className="text-base text-[var(--color-ink-inverse-2)] leading-relaxed">
+            Tạo bộ bài riêng, tra cứu nét viết trực quan và sưu tầm ấn chương
+            thành tựu từ N5 đến N1.
           </p>
-        </div>
+        </motion.div>
       </div>
 
       {/* Right Panel - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-24 overflow-y-auto">
-        <div className="w-full max-w-sm">
-          <div className="mb-10">
-            <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">
-              Tạo tài khoản
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 overflow-y-auto washi-grid">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 28 }}
+          className="w-full max-w-md bg-[var(--color-paper-1)] border border-[var(--color-border-subtle)] rounded-2xl p-8 sm:p-10 shadow-[var(--shadow-elevated)]"
+        >
+          <div className="lg:hidden flex items-center gap-2.5 mb-8">
+            <div className="w-9 h-9 rounded-lg bg-[var(--color-accent-1)] text-white flex items-center justify-center font-serif font-bold text-lg">
+              漢
+            </div>
+            <span className="text-lg font-extrabold text-[var(--color-ink-1)]">
+              Japan Kanji
+            </span>
+          </div>
+
+          <div className="mb-7">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-ink-1)] tracking-tight">
+              Tạo tài khoản mới
             </h1>
-            <p className="text-neutral-500 mt-2">
-              Bắt đầu học Kanji hoàn toàn miễn phí.
+            <p className="text-sm text-[var(--color-ink-2)] mt-1.5">
+              Bắt đầu học và lưu trữ tiến độ Kanji hoàn toàn miễn phí.
             </p>
           </div>
 
-          <form onSubmit={handleSignup} className="space-y-5">
+          <form onSubmit={handleSignup} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-50/50 border border-red-200 text-red-600 text-sm flex items-center animate-[shake_0.5s_ease-in-out]">
+              <div className="p-3.5 rounded-xl bg-[var(--color-accent-soft)] border border-[var(--color-accent-1)]/30 text-[var(--color-accent-1)] text-sm font-medium flex items-center gap-2.5 animate-[shake_0.45s_ease-in-out]">
+                <AlertCircle size={18} className="shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-neutral-900 mb-2">
+              <label className="block text-xs font-semibold text-[var(--color-ink-2)] mb-1.5">
                 Tên đăng nhập
               </label>
               <input
@@ -125,28 +164,28 @@ export default function Signup() {
                 value={username}
                 onChange={handleInputChange(setUsername)}
                 disabled={isLoading}
-                className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? "border-red-400 focus:border-red-600" : "border-neutral-200 focus:border-neutral-900"} focus:outline-none transition-colors rounded-none`}
-                placeholder="johndoe123"
+                className="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] focus:border-[var(--color-ink-1)] bg-[var(--color-paper-2)] focus:bg-[var(--color-paper-1)] text-[var(--color-ink-1)] text-sm font-medium placeholder:text-[var(--color-ink-3)] focus:outline-none transition-colors"
+                placeholder="vd: nguyenvana"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-900 mb-2 mt-4">
-                Email
+              <label className="block text-xs font-semibold text-[var(--color-ink-2)] mb-1.5">
+                Địa chỉ Email
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={handleInputChange(setEmail)}
                 disabled={isLoading}
-                className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? "border-red-400 focus:border-red-600" : "border-neutral-200 focus:border-neutral-900"} focus:outline-none transition-colors rounded-none`}
-                placeholder="john@example.com"
+                className="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] focus:border-[var(--color-ink-1)] bg-[var(--color-paper-2)] focus:bg-[var(--color-paper-1)] text-[var(--color-ink-1)] text-sm font-medium placeholder:text-[var(--color-ink-3)] focus:outline-none transition-colors"
+                placeholder="ban@example.com"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-sm font-medium text-neutral-900 mb-2">
+                <label className="block text-xs font-semibold text-[var(--color-ink-2)] mb-1.5">
                   Mật khẩu
                 </label>
                 <input
@@ -154,12 +193,12 @@ export default function Signup() {
                   value={password}
                   onChange={handleInputChange(setPassword)}
                   disabled={isLoading}
-                  className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? "border-red-400 focus:border-red-600" : "border-neutral-200 focus:border-neutral-900"} focus:outline-none transition-colors rounded-none`}
+                  className="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] focus:border-[var(--color-ink-1)] bg-[var(--color-paper-2)] focus:bg-[var(--color-paper-1)] text-[var(--color-ink-1)] text-sm font-medium placeholder:text-[var(--color-ink-3)] focus:outline-none transition-colors"
                   placeholder="••••••••"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-900 mb-2">
+                <label className="block text-xs font-semibold text-[var(--color-ink-2)] mb-1.5">
                   Xác nhận mật khẩu
                 </label>
                 <input
@@ -167,38 +206,65 @@ export default function Signup() {
                   value={confirmPassword}
                   onChange={handleInputChange(setConfirmPassword)}
                   disabled={isLoading}
-                  className={`w-full px-0 py-2 border-b-2 bg-transparent ${error ? "border-red-400 focus:border-red-600" : "border-neutral-200 focus:border-neutral-900"} focus:outline-none transition-colors rounded-none`}
+                  className="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] focus:border-[var(--color-ink-1)] bg-[var(--color-paper-2)] focus:bg-[var(--color-paper-1)] text-[var(--color-ink-1)] text-sm font-medium placeholder:text-[var(--color-ink-3)] focus:outline-none transition-colors"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
+            {/* Password hints */}
+            {password.length > 0 && (
+              <div className="flex flex-wrap gap-3 pt-1 text-xs">
+                <span
+                  className={`inline-flex items-center gap-1 font-medium ${
+                    hasMinLength
+                      ? "text-[var(--color-emerald-1)]"
+                      : "text-[var(--color-ink-3)]"
+                  }`}
+                >
+                  <CheckCircle2 size={13} /> Tối thiểu 8 ký tự
+                </span>
+                <span
+                  className={`inline-flex items-center gap-1 font-medium ${
+                    hasLetterAndNumber
+                      ? "text-[var(--color-emerald-1)]"
+                      : "text-[var(--color-ink-3)]"
+                  }`}
+                >
+                  <CheckCircle2 size={13} /> Có cả chữ và số
+                </span>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 flex items-center justify-center gap-2 bg-neutral-900 hover:bg-black text-white font-medium mt-8 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full py-3.5 px-5 rounded-xl flex items-center justify-center gap-2 bg-[var(--color-ink-1)] hover:bg-[var(--color-accent-1)] text-[var(--color-paper-1)] font-semibold text-sm mt-3 transition-colors shadow-sm active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
             >
               {isLoading ? (
                 <>
-                  <Loader2 size={20} className="animate-spin" />
-                  Đang tạo tài khoản...
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>Đang tạo tài khoản...</span>
                 </>
               ) : (
-                "Đăng ký"
+                <>
+                  <span>Đăng ký tài khoản</span>
+                  <ArrowRight size={16} />
+                </>
               )}
             </button>
           </form>
 
-          <div className="mt-8 text-center text-sm text-neutral-500">
+          <div className="mt-7 pt-6 hairline-t text-center text-sm text-[var(--color-ink-2)]">
             Đã có tài khoản?{" "}
             <Link
               to="/login"
-              className="text-neutral-900 font-semibold underline underline-offset-2"
+              className="text-[var(--color-accent-1)] font-bold hover:underline underline-offset-4"
             >
               Đăng nhập
             </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

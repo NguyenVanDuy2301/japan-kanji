@@ -30,6 +30,8 @@ public class DataSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final KanjiRepository kanjiRepository;
 
+    private static final String PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d).{8,}$";
+
     // Thông tin admin đọc từ cấu hình (biến môi trường), không hard-code trong code nữa
     private final String adminUsername;
     private final String adminEmail;
@@ -71,8 +73,8 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedAdmin() {
-        if (adminPassword == null || adminPassword.isBlank()) {
-            throw new IllegalStateException("app.admin.password (ADMIN_PASSWORD) không được để trống");
+        if (adminPassword == null || !adminPassword.matches(PASSWORD_REGEX)) {
+            throw new IllegalStateException("app.admin.password (ADMIN_PASSWORD) phải dài tối thiểu 8 ký tự, bao gồm cả chữ và số");
         }
 
         if (!userRepository.existsByUsername(adminUsername)) {
@@ -86,22 +88,22 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedDemoUsers() {
-        if (!userRepository.existsByUsername("user1")) {
-            User user1 = new User();
-            user1.setUsername("user1");
-            user1.setEmail("user1@japankanji.com");
-            user1.setPassword(passwordEncoder.encode("user123"));
-            user1.setRole("USER");
-            userRepository.save(user1);
-        }
+        seedOrUpgradeDemoUser("user1", "user1@japankanji.com", "user1234");
+        seedOrUpgradeDemoUser("user2", "user2@japankanji.com", "user1234");
+    }
 
-        if (!userRepository.existsByUsername("user2")) {
-            User user2 = new User();
-            user2.setUsername("user2");
-            user2.setEmail("user2@japankanji.com");
-            user2.setPassword(passwordEncoder.encode("user123"));
-            user2.setRole("USER");
-            userRepository.save(user2);
+    private void seedOrUpgradeDemoUser(String username, String email, String defaultPassword) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            user = new User();
+            user.setUsername(username);
+            user.setEmail(email);
+            user.setPassword(passwordEncoder.encode(defaultPassword));
+            user.setRole("USER");
+            userRepository.save(user);
+        } else if (!passwordEncoder.matches(defaultPassword, user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(defaultPassword));
+            userRepository.save(user);
         }
     }
 

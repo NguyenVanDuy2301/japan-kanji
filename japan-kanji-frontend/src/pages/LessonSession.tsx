@@ -1,16 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Bookmark, CheckCircle2, RefreshCw } from "lucide-react";
+import {
+  ArrowLeft,
+  Bookmark,
+  CheckCircle2,
+  RefreshCw,
+  RotateCcw,
+} from "lucide-react";
 import { studyService } from "../services/study.service";
 import { deckService } from "../services/deck.service";
 import type { VocabularyResponse } from "../types/vocabulary.types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "../components/ui/Skeleton";
+import { Confetti } from "../components/ui/Confetti";
+import { useToast } from "../components/ui/Toast";
 import clsx from "clsx";
 
 export default function LessonSession() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [mode, setMode] = useState<"new" | "practice" | "loading">("loading");
 
   const [vocabularies, setVocabularies] = useState<VocabularyResponse[]>([]);
@@ -26,7 +35,6 @@ export default function LessonSession() {
       try {
         if (!deckId) return;
 
-        // Check if deck is saved
         const savedDecks = await deckService.getSavedDecks();
         setIsSaved(savedDecks.some((d) => d.id === Number(deckId)));
 
@@ -42,12 +50,13 @@ export default function LessonSession() {
         setVocabularies(data);
       } catch (error) {
         console.error("Failed to fetch lessons:", error);
+        toast("Không thể tải dữ liệu bài học.", "error");
       } finally {
         setIsLoading(false);
       }
     };
     fetchLessons();
-  }, [deckId]);
+  }, [deckId, toast]);
 
   const handleToggleSave = async () => {
     if (!deckId || isSaving) return;
@@ -56,18 +65,21 @@ export default function LessonSession() {
       if (isSaved) {
         await deckService.unsaveDeck(Number(deckId));
         setIsSaved(false);
+        toast("Đã bỏ lưu bộ bài khỏi tủ sách.", "info");
       } else {
         await deckService.saveDeck(Number(deckId));
         setIsSaved(true);
+        toast("Đã lưu bộ bài vào Tủ sách của bạn!");
       }
     } catch (error) {
       console.error("Failed to toggle save deck:", error);
+      toast("Không thể cập nhật trạng thái lưu bộ bài.", "error");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     if (currentIndex < vocabularies.length && mode === "new") {
       const currentVocab = vocabularies[currentIndex];
       try {
@@ -79,21 +91,46 @@ export default function LessonSession() {
 
     if (currentIndex < vocabularies.length - 1) {
       setIsAnswerRevealed(false);
-      setTimeout(() => setCurrentIndex((prev) => prev + 1), 150);
+      setTimeout(() => setCurrentIndex((prev) => prev + 1), 140);
     } else {
       setIsFinished(true);
     }
-  };
+  }, [currentIndex, vocabularies, mode]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isLoading || isFinished || vocabularies.length === 0) return;
+      if (e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        if (!isAnswerRevealed) {
+          setIsAnswerRevealed(true);
+        } else {
+          handleNext();
+        }
+      } else if (e.key === "Escape") {
+        navigate("/");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    isLoading,
+    isFinished,
+    vocabularies.length,
+    isAnswerRevealed,
+    handleNext,
+    navigate,
+  ]);
 
   if (isLoading || mode === "loading") {
     return (
       <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col items-center justify-center p-4">
-        <div className="max-w-2xl w-full flex-1 flex flex-col min-h-[600px] bg-white rounded-3xl shadow-xl p-8 lg:p-12 border border-neutral-200">
-          <Skeleton className="h-6 w-32 mb-8 mx-auto" />
+        <div className="max-w-md w-full flex flex-col min-h-[520px] bg-[var(--color-paper-1)] rounded-2xl shadow-[var(--shadow-elevated)] p-8 border border-[var(--color-border-subtle)]">
+          <Skeleton className="h-5 w-32 mb-8 mx-auto" />
           <div className="flex-1 flex items-center justify-center">
-            <Skeleton className="h-32 w-32 md:h-48 md:w-48 rounded-2xl" />
+            <Skeleton className="h-36 w-36 rounded-2xl" />
           </div>
-          <Skeleton className="h-16 w-full rounded-xl mt-8" />
+          <Skeleton className="h-14 w-full rounded-xl mt-8" />
         </div>
       </div>
     );
@@ -102,39 +139,53 @@ export default function LessonSession() {
   if (vocabularies.length === 0) {
     return (
       <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-[var(--color-paper-1)] rounded-3xl p-10 text-center shadow-2xl border border-[oklch(0.90_0.01_250)]">
-          <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 size={32} className="text-neutral-400" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-[var(--color-paper-1)] rounded-2xl p-10 text-center shadow-[var(--shadow-elevated)] border border-[var(--color-border-subtle)]"
+        >
+          <div className="w-16 h-16 rounded-2xl bg-[var(--color-paper-2)] flex items-center justify-center mx-auto mb-6 border border-[var(--color-border-subtle)]">
+            <CheckCircle2 size={32} className="text-[var(--color-ink-3)]" />
           </div>
-          <h2 className="text-2xl font-bold text-[var(--color-ink-1)] mb-2">
-            Bộ bài trống!
+          <h2 className="font-serif text-2xl font-bold text-[var(--color-ink-1)] mb-2">
+            Bộ bài chưa có từ vựng
           </h2>
-          <p className="text-[var(--color-ink-2)] mb-8">
-            Bộ bài này chưa có từ vựng nào. Hãy thêm từ vựng trước khi học.
+          <p className="text-sm text-[var(--color-ink-2)] mb-8">
+            Hãy thêm chữ Hán vào bộ bài trước khi bắt đầu phiên học tập.
           </p>
           <button
             onClick={() => navigate("/")}
-            className="w-full px-6 py-4 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] text-[var(--color-ink-inverse-1)] font-bold rounded-xl transition-colors"
+            className="w-full px-6 py-3.5 bg-[var(--color-ink-1)] hover:bg-[var(--color-accent-1)] text-white font-semibold text-sm rounded-xl transition-colors cursor-pointer"
           >
             Quay về Tổng quan
           </button>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   if (isFinished) {
     return (
-      <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-[var(--color-paper-1)] rounded-3xl p-10 text-center shadow-2xl border border-[oklch(0.90_0.01_250)]">
-          <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 size={32} className="text-green-500" />
+      <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <Confetti />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 320, damping: 24 }}
+          className="max-w-md w-full bg-[var(--color-paper-1)] rounded-2xl p-10 text-center shadow-[var(--shadow-elevated)] border border-[var(--color-border-subtle)] relative z-10"
+        >
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 size={34} className="text-[var(--color-emerald-1)]" />
           </div>
-          <h2 className="text-2xl font-bold text-[var(--color-ink-1)] mb-2">
+          <h2 className="font-serif text-2xl font-bold text-[var(--color-ink-1)] mb-2">
             Hoàn Thành {mode === "practice" ? "Luyện Tập" : "Bài Học"}!
           </h2>
-          <p className="text-[var(--color-ink-2)] mb-8">
-            Bạn đã học {vocabularies.length} chữ Kanji hôm nay. Làm tốt lắm!
+          <p className="text-sm text-[var(--color-ink-2)] mb-8">
+            Bạn đã hoàn thành{" "}
+            <strong className="text-[var(--color-ink-1)] tabular-nums">
+              {vocabularies.length}
+            </strong>{" "}
+            chữ Kanji trong phiên này. Tuyệt vời lắm!
           </p>
           <div className="flex flex-col gap-3">
             <button
@@ -143,133 +194,147 @@ export default function LessonSession() {
                 setIsAnswerRevealed(false);
                 setIsFinished(false);
               }}
-              className="w-full px-6 py-4 bg-neutral-100 hover:bg-neutral-200 text-[var(--color-ink-1)] font-bold rounded-xl transition-colors"
+              className="w-full px-6 py-3.5 bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] text-[var(--color-ink-1)] font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
-              Học lại từ đầu
+              <RotateCcw size={16} />
+              <span>Học lại từ đầu</span>
             </button>
             <button
               onClick={() => navigate("/")}
-              className="w-full px-6 py-4 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] text-[var(--color-ink-inverse-1)] font-bold rounded-xl transition-colors"
+              className="w-full px-6 py-3.5 bg-[var(--color-ink-1)] hover:bg-[var(--color-accent-1)] text-white font-semibold text-sm rounded-xl transition-colors cursor-pointer"
             >
               Quay về Tổng quan
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   const currentVocab = vocabularies[currentIndex];
-  const progress = (currentIndex / vocabularies.length) * 100;
+  const progress = ((currentIndex + 1) / vocabularies.length) * 100;
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col font-sans">
-      {/* Top Header */}
-      <header className="p-6 flex items-center justify-between">
+    <div className="min-h-screen bg-[var(--color-surface-1)] flex flex-col font-sans select-none">
+      {/* Top Studio Bar */}
+      <header className="px-6 py-5 flex items-center justify-between max-w-4xl w-full mx-auto">
         <button
           onClick={() => navigate("/")}
-          className="p-2 text-[var(--color-ink-inverse-2)] hover:text-white transition-colors"
+          className="p-2.5 rounded-xl text-[var(--color-ink-inverse-2)] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          title="Quay lại (Esc)"
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft size={20} />
         </button>
 
         <div className="flex-1 max-w-md mx-6 flex items-center gap-4">
-          <div className="h-1.5 flex-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[var(--color-accent-1)] transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            ></div>
+          <div className="h-2 flex-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-[var(--color-accent-1)]"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ type: "spring", stiffness: 200, damping: 26 }}
+            />
           </div>
-          <span className="text-xs font-bold text-[var(--color-ink-inverse-2)] tracking-wider">
-            {currentIndex + 1}/{vocabularies.length}
+          <span className="text-xs font-bold text-[var(--color-ink-inverse-2)] tabular-nums">
+            {currentIndex + 1} / {vocabularies.length}
           </span>
         </div>
 
         <button
           onClick={handleToggleSave}
           disabled={isSaving}
+          title={isSaved ? "Bỏ lưu bộ bài" : "Lưu bộ bài vào Tủ sách"}
           className={clsx(
-            "p-2 transition-colors focus:outline-none",
+            "p-2.5 rounded-xl transition-colors focus:outline-none cursor-pointer",
             isSaved
-              ? "text-[var(--color-accent-1)]"
-              : "text-[var(--color-ink-inverse-2)] hover:text-white"
+              ? "text-[var(--color-accent-1)] bg-white/10"
+              : "text-[var(--color-ink-inverse-2)] hover:text-white hover:bg-white/10"
           )}
         >
-          <Bookmark size={24} className={isSaved ? "fill-current" : ""} />
+          <Bookmark size={20} className={isSaved ? "fill-current" : ""} />
         </button>
       </header>
 
-      {/* Main Content Area */}
-      <main
-        className="flex-1 flex flex-col items-center justify-center p-4 cursor-pointer"
-        onClick={() => navigate("/")}
-      >
+      {/* Main Flashcard Stage */}
+      <main className="flex-1 flex flex-col items-center justify-center p-4">
         <motion.div
-          layout
-          onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-[400px] min-h-[500px] bg-[var(--color-paper-1)] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-[oklch(0.90_0.01_250)] cursor-default"
+          key={currentVocab.id}
+          initial={{ opacity: 0, y: 14, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: "spring", stiffness: 340, damping: 28 }}
+          className="w-full max-w-[420px] min-h-[520px] bg-[var(--color-paper-1)] rounded-2xl shadow-[var(--shadow-elevated)] overflow-hidden flex flex-col border border-[var(--color-border-subtle)]"
         >
-          {/* Top Wrapper for Kanji and Details */}
           <div className="flex-1 flex flex-col justify-center">
-            {/* Top: Kanji Display */}
+            {/* Top: Kanji Display on Practice Grid */}
             <motion.div
               layout
-              className="p-10 flex flex-col items-center text-center bg-[var(--color-paper-1)] relative z-10"
+              onClick={() => !isAnswerRevealed && setIsAnswerRevealed(true)}
+              className={clsx(
+                "p-8 flex flex-col items-center text-center relative z-10",
+                !isAnswerRevealed &&
+                  "kanji-practice-grid flex-1 justify-center cursor-pointer"
+              )}
             >
-              <h3 className="text-[10px] font-bold text-[var(--color-accent-1)] uppercase tracking-[0.2em] mb-4">
-                {mode === "practice" ? "Luyện Tập" : "Bài Học Mới"}
-              </h3>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent-1)] text-xs font-bold mb-3">
+                <span>
+                  {mode === "practice" ? "Chế độ Luyện tập" : "Bài học từ mới"}
+                </span>
+                {currentVocab.jlptLevel && (
+                  <span className="opacity-75">• {currentVocab.jlptLevel}</span>
+                )}
+              </div>
+
               <motion.h1
                 layout="position"
                 className={clsx(
-                  "font-serif font-bold text-[var(--color-ink-1)] leading-none transition-all duration-500",
-                  isAnswerRevealed ? "text-[80px]" : "text-[140px] my-6"
+                  "font-serif font-bold text-[var(--color-ink-1)] leading-none transition-all duration-300",
+                  isAnswerRevealed ? "text-[84px] my-2" : "text-[136px] my-6"
                 )}
               >
                 {currentVocab.kanji}
               </motion.h1>
             </motion.div>
 
-            {/* Middle: Details (Snap up on reveal) */}
+            {/* Middle: Revealed Answer Details */}
             <AnimatePresence>
               {isAnswerRevealed && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, height: "auto", scale: 1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  className="px-10 pb-10 text-center relative z-0 origin-top"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  transition={{ type: "spring", stiffness: 360, damping: 30 }}
+                  className="px-8 pb-8 text-center relative z-0 origin-top"
                 >
-                  <div className="space-y-6 pt-4 border-t border-[oklch(0.95_0.01_250)]">
+                  <div className="space-y-5 pt-5 hairline-t">
                     <div>
-                      <p className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
-                        Ý nghĩa
+                      <p className="text-xs font-semibold text-[var(--color-ink-3)] mb-1">
+                        Nghĩa tiếng Việt
                       </p>
                       <p className="text-2xl font-bold text-[var(--color-ink-1)]">
                         {currentVocab.meaning}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
+                      <p className="text-xs font-semibold text-[var(--color-ink-3)] mb-1">
                         Âm Hán Việt
                       </p>
-                      <p className="text-lg font-serif text-[var(--color-accent-1)]">
-                        {currentVocab.hanViet}
+                      <p className="text-xl font-serif font-bold text-[var(--color-accent-1)]">
+                        {currentVocab.hanViet || "—"}
                       </p>
                     </div>
-                    <div className="flex justify-center gap-10 pt-4 hairline-t text-left">
-                      <div>
-                        <span className="block text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
-                          Onyomi
+                    <div className="grid grid-cols-2 gap-3 pt-2 text-left">
+                      <div className="p-3 rounded-xl bg-[var(--color-paper-2)] border border-[var(--color-border-subtle)]">
+                        <span className="block text-[11px] font-semibold text-[var(--color-ink-2)] mb-0.5">
+                          Âm Onyomi
                         </span>
-                        <span className="font-medium text-[var(--color-ink-1)]">
+                        <span className="font-bold text-sm text-[var(--color-ink-1)]">
                           {currentVocab.onyomi || "—"}
                         </span>
                       </div>
-                      <div>
-                        <span className="block text-[10px] font-bold text-[var(--color-ink-2)] uppercase tracking-widest mb-1">
-                          Kunyomi
+                      <div className="p-3 rounded-xl bg-[var(--color-paper-2)] border border-[var(--color-border-subtle)]">
+                        <span className="block text-[11px] font-semibold text-[var(--color-ink-2)] mb-0.5">
+                          Âm Kunyomi
                         </span>
-                        <span className="font-medium text-[var(--color-ink-1)]">
+                        <span className="font-bold text-sm text-[var(--color-ink-1)]">
                           {currentVocab.kunyomi || "—"}
                         </span>
                       </div>
@@ -280,40 +345,38 @@ export default function LessonSession() {
             </AnimatePresence>
           </div>
 
-          {/* Bottom: Controls */}
-          <div className="p-6 bg-[oklch(0.97_0.01_250)] border-t border-[oklch(0.90_0.01_250)] mt-auto">
+          {/* Bottom Controls */}
+          <div className="p-5 bg-[var(--color-paper-2)] hairline-t mt-auto">
             <AnimatePresence mode="wait">
               {!isAnswerRevealed ? (
                 <motion.div
                   key="reveal"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
                 >
                   <button
                     onClick={() => setIsAnswerRevealed(true)}
-                    className="w-full py-4 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] text-[var(--color-ink-inverse-1)] font-bold text-base rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                    className="w-full py-3.5 bg-[var(--color-ink-1)] hover:bg-[var(--color-accent-1)] text-white font-semibold text-sm rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                   >
-                    Xem Đáp Án{" "}
-                    <RefreshCw
-                      size={18}
-                      className="text-[var(--color-ink-inverse-2)]"
-                    />
+                    <RefreshCw size={16} />
+                    <span>Lật xem đáp án (Space)</span>
                   </button>
                 </motion.div>
               ) : (
                 <motion.div
                   key="next"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.15 }}
                 >
                   <button
                     onClick={handleNext}
-                    className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold text-base rounded-xl transition-colors shadow-[0_0_15px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-green-500/50"
+                    className="w-full py-3.5 bg-[var(--color-emerald-1)] hover:opacity-95 text-white font-semibold text-sm rounded-xl transition-opacity shadow-sm flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                   >
-                    Đã ghi nhớ (Enter) <CheckCircle2 size={20} />
+                    <CheckCircle2 size={18} />
+                    <span>Đã ghi nhớ — Tiếp tục (Space)</span>
                   </button>
                 </motion.div>
               )}
